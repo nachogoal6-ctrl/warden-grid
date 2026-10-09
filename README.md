@@ -30,6 +30,9 @@ Independent community project. Not run or endorsed by Identity.md.
 $WARD no está lanzado: todos los datos del token muestran "not launched yet".
 Si una fuente falla, la web muestra "no data" (y las calles quedan vacías).
 
+## Calidad
+La web elige calidad sola (baja en móviles y equipos pequeños) y ajusta la resolución en vivo para mantener la fluidez. El botón `quality` de la barra inferior la fija en auto / high / low (se recuerda en ese navegador). En calidad baja se muestran como máximo 400 figuras y la ficha del Nest lo indica.
+
 ## Probar en local
 ```
 npx serve .

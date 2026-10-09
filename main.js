@@ -15,11 +15,17 @@ import * as data from './data.js';
 import { $, fmt, esc, hhmm, makeContent, pushFeed, sysLine, renderStats, updAge, buildLabels, ping, bindSound } from './ui.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// quality: 'auto' picks low on phones and small machines; the viewer can force high or low (remembered per browser)
+let qPref = 'auto'; try { qPref = localStorage.getItem('wg-quality') || 'auto'; } catch {}
+const weak = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || (navigator.hardwareConcurrency || 8) <= 2 || Math.min(innerWidth, innerHeight) < 700;
+const LOW = qPref === 'low' || (qPref === 'auto' && weak);
+const MAX_PR = LOW ? 1 : Math.min(devicePixelRatio, 1.5);
+const AGENT_CAP = LOW ? 400 : MAX_AGENTS;
 
 /* ------------------------------ renderer ------------------------------ */
 const canvas = $('#scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+let pr = MAX_PR; renderer.setPixelRatio(pr);
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ReinhardToneMapping;
 renderer.toneMappingExposure = 1.15;
@@ -45,7 +51,7 @@ controls.autoRotateSpeed = 0.3;
 /* ------------------------------ world ------------------------------ */
 const city = buildCity(scene);
 const agents = buildAgents(scene);
-const swarm = buildSwarm(scene);
+const swarm = buildSwarm(scene, LOW ? { flocks: 30, perFlock: 50 } : undefined);
 const fx = buildFx(scene, camera);
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const dpos = (k, y) => V(DISTRICTS[k].pos[0], y ?? DISTRICTS[k].focus ?? 10, DISTRICTS[k].pos[1]);
@@ -53,7 +59,7 @@ const dpos = (k, y) => V(DISTRICTS[k].pos[0], y ?? DISTRICTS[k].focus ?? 10, DIS
 /* ------------------------------ post-processing ------------------------------ */
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.8, 0.45, 0.22);
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight).multiplyScalar(LOW ? 0.5 : 1), 0.8, 0.45, 0.22);
 composer.addPass(bloom);
 const finalPass = new ShaderPass({
   uniforms: { tDiffuse: { value: null }, time: shared.time, alarm: shared.alarm, glitch: { value: 0 }, res: { value: new THREE.Vector2(innerWidth, innerHeight) } },
@@ -101,7 +107,7 @@ controls.addEventListener('start', () => { controls.autoRotate = false; fly = nu
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 /* ------------------------------ drawer ------------------------------ */
-const CONTENT = makeContent({ agents });
+const CONTENT = makeContent({ agents, cap: AGENT_CAP });
 let openKey = null;
 function showDrawer(code, title, html) {
   $('#d-code').textContent = code; $('#d-title').textContent = title; $('#d-body').innerHTML = html;
@@ -203,6 +209,11 @@ $('#cmd').addEventListener('submit', e => {
 $('#b-mode').addEventListener('click', () => $('#mode').classList.toggle('show'));
 const mq = matchMedia('(max-width:760px)'); const syncMq = () => { $('#b-mode').style.display = mq.matches ? '' : 'none'; }; mq.addEventListener('change', syncMq); syncMq();
 $('#skip').addEventListener('click', endIntro);
+{
+  const b = $('#b-q'); const order = ['auto', 'high', 'low'];
+  b.textContent = `quality: ${qPref}${qPref === 'auto' ? (LOW ? ' (low)' : ' (high)') : ''}`;
+  b.addEventListener('click', () => { const n = order[(order.indexOf(qPref) + 1) % order.length]; try { localStorage.setItem('wg-quality', n); } catch {} location.reload(); });
+}
 bindSound();
 
 /* ------------------------------ live data → city ------------------------------ */
@@ -235,7 +246,7 @@ data.on('event', ({ e, live }) => {
 });
 data.on('offline', () => sysLine('api.imd.fun not reachable from this view. The streets stay empty: no data, no agents.'));
 data.on('swarm', S => {
-  agents.setCount(Math.min(MAX_AGENTS, S.swarm?.health?.agentsOnline || 0));
+  agents.setCount(Math.min(AGENT_CAP, S.swarm?.health?.agentsOnline || 0));
   renderStats(); refreshDrawer(); updAge();
 });
 data.on('block', ({ block, live }) => {
@@ -262,6 +273,19 @@ function sceneTick(dt) {
     sceneClock = 0; const d = DISTRICTS.vault;
     fx.spawn({ from: V(d.pos[0] + (Math.random() - .5) * 6, 8, d.pos[1] + (Math.random() - .5) * 6), to: V(d.pos[0], 70 + Math.random() * 30, d.pos[1]), color: MINT, dur: 2.4, arc: 2, size: 3.4 });
   }
+}
+
+/* ------------------------------ adaptive resolution: keep it smooth on any machine ------------------------------ */
+let fpsAcc = 0, fpsFrames = 0;
+function adapt(dt) {
+  if (document.visibilityState !== 'visible') return;
+  fpsAcc += dt; fpsFrames++;
+  if (fpsAcc < 2.5) return;
+  const fps = fpsFrames / fpsAcc; fpsAcc = 0; fpsFrames = 0;
+  let next = pr;
+  if (fps < 32 && pr > 0.6) next = Math.max(0.6, pr - 0.2);
+  else if (fps > 56 && pr < MAX_PR) next = Math.min(MAX_PR, pr + 0.1);
+  if (next !== pr) { pr = next; renderer.setPixelRatio(pr); composer.setPixelRatio(pr); }
 }
 
 /* ------------------------------ loop ------------------------------ */
@@ -298,6 +322,7 @@ function frame() {
 
   composer.render();
   placeLabels(!!intro && shared.reveal.value < 999);
+  adapt(dt);
   requestAnimationFrame(frame);
 }
 addEventListener('resize', () => {

@@ -49,7 +49,7 @@ export function makeContent(ctx) {
       <p class="lede">The units on the streets are the IMD swarm: every figure is one agent online right now. When a seat's work is accepted, its unit lights up and walks to the program it worked for. Tap any unit to open its file.</p>
       <div><p class="sect">Swarm right now</p><div class="grid3">${kv('Online', h ? fmt(h.agentsOnline) : null)}${kv('Working', h ? fmt(h.workingNow) : null)}${kv('Seats enrolled', h ? fmt(h.seatsEnrolled) : null)}</div></div>
       <div><p class="sect">Last 24h</p><div class="grid3">${kv('Jobs done', h ? fmt(h.jobsDoneLastDay) : null, HOT)}${kv('Steps accepted', h ? fmt(h.acceptedLastDay) : null, HOT)}${kv('Launches live', c ? fmt(c.launchesLive) : null, HOT)}</div></div>
-      <p class="src">Figures in the city: ${ctx.agents.shown ? fmt(ctx.agents.shown) : 'none (no data)'}${(h?.agentsOnline || 0) > 1000 ? ', capped at 1,000' : ''}.</p>
+      <p class="src">Figures in the city: ${ctx.agents.shown ? fmt(ctx.agents.shown) : 'none (no data)'}${(h?.agentsOnline || 0) > ctx.cap ? `, capped at ${fmt(ctx.cap)} for this device` : ''}.</p>
       ${srcIMD()}`; },
     vault: () => `<p class="lore">access denied. until the work is done.</p>
       <p class="lede">The team's tokens sit locked here. A tranche opens only when the oracle panel confirms a public milestone from sources fixed in advance. If the work isn't delivered, nothing unlocks.</p>
@@ -142,6 +142,12 @@ function startAudio() {
   [41.2, 61.7, 82.4].forEach((f, i) => { const o = actx.createOscillator(); o.type = i ? 'square' : 'sine'; o.frequency.value = f; o.detune.value = (i - 1) * 9;
     const g = actx.createGain(); g.gain.value = i ? 0.035 : 0.22; o.connect(g); g.connect(lp); o.start(); });
   const lfo = actx.createOscillator(); lfo.frequency.value = 0.08; const lg = actx.createGain(); lg.gain.value = 320; lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
+  // a soft hiss of falling code
+  const buf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate); const ch = buf.getChannelData(0);
+  for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+  const noise = actx.createBufferSource(); noise.buffer = buf; noise.loop = true;
+  const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 5200; bp.Q.value = 0.7;
+  const ng = actx.createGain(); ng.gain.value = 0.035; noise.connect(bp); bp.connect(ng); ng.connect(master); noise.start();
   master.gain.linearRampToValueAtTime(0.5, actx.currentTime + 2);
 }
 export function ping(freq = 600, vol = 0.08, type = 'square', len = 0.5) {
