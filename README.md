@@ -12,6 +12,8 @@ Independent community project. Not run or endorsed by Identity.md.
 - `city.js` — la ciudad: los 7 distritos con arquitectura propia, edificios, puentes, antenas y cables de datos.
 - `agents.js` — el swarm a pie: una figura animada por agente IMD online (máx. 1.000).
 - `swarm.js` — bandadas de luz entre distritos (GPU, decorativo).
+- `fx.js` — paquetes de luz y etiquetas flotantes.
+- `warden.js` — The Warden: holograma original del guardián sobre la Gate.
 - `shaders.js` — material de código que cae, reveal de la ciudad, ola de bloque, tinte de Breach.
 - `data.js` — todas las fuentes de datos reales.
 - `ui.js` — etiquetas, fichas, log, terminal y sonido.

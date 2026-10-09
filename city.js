@@ -74,7 +74,7 @@ export function buildCity(scene) {
     const core = new THREE.Mesh(new THREE.OctahedronGeometry(2.6, 0), glowMaterial(HOT, { intensity: 3 })); core.position.y = 22; grp.add(core);
     const coreE = edges(new THREE.OctahedronGeometry(3.6, 0), ringMat); coreE.position.y = 22; grp.add(coreE);
     pad(grp, d.color, 30);
-    d.top = 68; d.focus = 26; d.labelY = 54;
+    d.top = 68; d.focus = 30; d.labelY = 66;
     extra.hook = { ring, ring2, core, coreE, ringMat };
     anim.push((t, dt) => { ring.rotation.z += dt * 0.35; ring2.rotation.z -= dt * 0.6; ring2.rotation.y = Math.sin(t * 0.4) * 0.5;
       core.rotation.y += dt * 0.8; core.position.y = coreE.position.y = 22 + Math.sin(t * 1.3) * 0.8; coreE.rotation.y -= dt * 0.5; });

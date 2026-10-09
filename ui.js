@@ -122,14 +122,17 @@ export function buildLabels(camera, onOpen) {
     el.addEventListener('click', () => onOpen(k)); box.appendChild(el);
     return { el, p: new THREE.Vector3(d.pos[0], d.labelY ?? d.top + 3, d.pos[1]) };
   });
+  for (const l of labels) l.w = 0;
   return function place(hidden) {
-    for (const l of labels) {
-      v.copy(l.p).project(camera);
-      const sy = (-v.y * 0.5 + 0.5) * innerHeight;
-      const vis = !hidden && v.z < 1 && Math.abs(v.x) < 1.1 && sy > 66 && sy < innerHeight - 60;
-      l.el.style.display = vis ? '' : 'none';
-      if (vis) { const x = (v.x * 0.5 + 0.5) * innerWidth; l.el.style.transform = `translate(${x.toFixed(1)}px, ${(sy - 30).toFixed(1)}px)`; l.el.style.zIndex = String(1000 - Math.round(v.z * 1000)); }
-    }
+    // project, then hide any label that would overlap a nearer one
+    const shown = [];
+    for (const l of labels) { v.copy(l.p).project(camera); l.z = v.z; l.x = (v.x * 0.5 + 0.5) * innerWidth; l.y = (-v.y * 0.5 + 0.5) * innerHeight - 30; l.ok = !hidden && v.z < 1 && Math.abs(v.x) < 1.1 && l.y > 36 && l.y < innerHeight - 90; }
+    labels.slice().sort((a, b) => a.z - b.z).forEach(l => {
+      if (l.ok) { if (!l.w) l.w = l.el.offsetWidth || 120;
+        if (shown.some(s => Math.abs(s.x - l.x) < (s.w + l.w) / 2 + 6 && Math.abs(s.y - l.y) < 30)) l.ok = false; else shown.push(l); }
+      l.el.style.display = l.ok ? '' : 'none';
+      if (l.ok) { l.el.style.transform = `translate(${(l.x - l.w / 2).toFixed(1)}px, ${l.y.toFixed(1)}px)`; l.el.style.zIndex = String(1000 - Math.round(l.z * 1000)); }
+    });
   };
 }
 

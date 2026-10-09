@@ -11,6 +11,7 @@ import { buildCity, DISTRICTS } from './city.js';
 import { buildAgents, MAX_AGENTS } from './agents.js';
 import { buildSwarm } from './swarm.js';
 import { buildFx } from './fx.js';
+import { buildWarden } from './warden.js';
 import * as data from './data.js';
 import { $, fmt, esc, hhmm, makeContent, pushFeed, sysLine, renderStats, updAge, buildLabels, ping, bindSound } from './ui.js';
 
@@ -53,6 +54,7 @@ const city = buildCity(scene);
 const agents = buildAgents(scene);
 const swarm = buildSwarm(scene, LOW ? { flocks: 30, perFlock: 50 } : undefined);
 const fx = buildFx(scene, camera);
+const warden = buildWarden(scene, { y: 50.75 });
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const dpos = (k, y) => V(DISTRICTS[k].pos[0], y ?? DISTRICTS[k].focus ?? 10, DISTRICTS[k].pos[1]);
 
@@ -89,10 +91,10 @@ const introPath = new THREE.CatmullRomCurve3([
   new THREE.Vector3(10, 66, 18), HOME.pos.clone(),
 ], false, 'centripetal');
 let intro = null, fly = null;
-function startIntro() { intro = { t: 0, dur: 13, t0: performance.now() }; controls.enabled = false; shared.reveal.value = 0; }
+function startIntro() { intro = { t: 0, dur: 13, t0: performance.now() }; controls.enabled = false; shared.reveal.value = 0; const tc = $('#title-card'); tc.classList.remove('play'); void tc.offsetWidth; tc.classList.add('play'); }
 function endIntro() {
   if (!intro) return; intro = null; controls.enabled = true; shared.reveal.value = 999;
-  camera.position.copy(HOME.pos); controls.target.copy(HOME.target); controls.autoRotate = !reduced; $('#skip').hidden = true;
+  camera.position.copy(HOME.pos); controls.target.copy(HOME.target); controls.autoRotate = !reduced; $('#skip').hidden = true; $('#title-card').classList.remove('play');
 }
 function flyTo(pos, target, dur = 1.6) { controls.autoRotate = false; fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, t: 0, dur }; }
 function flyDistrict(k) {
@@ -136,6 +138,18 @@ canvas.addEventListener('pointerup', async e => {
   if (!hit || hit.instanceId == null) return;
   openSeat(hit.instanceId);
 });
+let hoverAt = 0;
+canvas.addEventListener('pointermove', e => {
+  const tip = $('#tip'); const now = performance.now();
+  if (now - hoverAt < 90 || intro) return; hoverAt = now;
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObject(agents.parts[0], false)[0];
+  if (!hit || hit.instanceId == null) { tip.hidden = true; canvas.style.cursor = ''; return; }
+  const id = data.S.seatOrder[hit.instanceId], s = id != null ? data.getSeat(id) : null;
+  tip.innerHTML = s ? `<b>seat #${esc(id)}</b> · ${fmt(s.accepted)} accepted${s.working ? ' · <em>working</em>' : ''}<br><span>tap to open its file</span>` : `<b>unit ${hit.instanceId + 1}</b><br><span>no seat data</span>`;
+  tip.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 14}px)`; tip.hidden = false; canvas.style.cursor = 'pointer';
+});
+canvas.addEventListener('pointerleave', () => { $('#tip').hidden = true; });
 function openSeat(i) {
   const tokenId = data.S.seatOrder[i];
   const u = agents.units[i]; u.glow = 1; ping(740);
@@ -319,6 +333,7 @@ function frame() {
   fx.update(dt * sp); fx.placeTags(dt);
   for (const f of city.anim) f(T, dt * sp, mode);
   agents.update(T, dt * sp, mode);
+  warden.update(T, dt * sp, mode);
 
   composer.render();
   placeLabels(!!intro && shared.reveal.value < 999);
