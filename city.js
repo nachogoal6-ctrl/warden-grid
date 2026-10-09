@@ -172,11 +172,12 @@ export function buildCity(scene) {
     grp.add(pts);
     pad(grp, d.color, 28);
     d.top = 40; d.focus = 14;
-    extra.furnace = { mouthMat, pts };
+    extra.furnace = { mouthMat, pts, flash: 0 };
     anim.push((t, dt, mode) => {
       const burn = mode === 'buyback';
       pts.material.opacity += ((burn ? 1 : 0.22) - pts.material.opacity) * Math.min(1, dt * 2);
-      mouthMat.uniforms.intensity.value = burn ? 3 + Math.sin(t * 9) * 0.6 : 0.9 + Math.sin(t * 1.5) * 0.2;
+      const fu = extra.furnace; fu.flash = Math.max(0, fu.flash - dt * 3);
+      mouthMat.uniforms.intensity.value = (burn ? 3 + Math.sin(t * 9) * 0.6 : 0.9 + Math.sin(t * 1.5) * 0.2) + fu.flash * 3;
       const sp = burn ? 1.6 : 0.6;
       for (let i = 0; i < EMB; i++) { const e = em2[i]; e.y += e.v * dt * sp; if (e.y > 50) e.y = 0;
         ep[i * 3] = e.s.x + Math.sin(t + e.o + e.y * 0.25) * e.y * 0.09; ep[i * 3 + 1] = e.s.top + e.y; ep[i * 3 + 2] = e.s.z + Math.cos(t * 0.7 + e.o) * e.y * 0.06; }

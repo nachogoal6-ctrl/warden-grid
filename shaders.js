@@ -82,7 +82,7 @@ const CODE_FS = /* glsl */`
     // compile scanline at the reveal front
     float front = exp(-pow((vWorld.y - reveal)*1.2, 2.));
     col += vec3(0.7, 1.0, 0.8) * front * 2.0 * step(reveal, 900.);
-    col = mix(col, vec3(dot(col, vec3(.3,.6,.1))*1.9 + 0.02, col.g*0.18, col.g*0.22), alarm);
+    col = mix(col, vec3(dot(col, vec3(.3,.6,.1))*2.4 + 0.03, col.g*0.1, col.g*0.14), alarm);
     float f = 1. - exp(-fogDensity*fogDensity*vDepth*vDepth);
     gl_FragColor = vec4(mix(col, fogColor, clamp(f, 0., 1.)), 1.);
   }`;

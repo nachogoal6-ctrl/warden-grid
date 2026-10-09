@@ -10,6 +10,7 @@ import { shared, FOG, G, ALARM, MINT } from './shaders.js';
 import { buildCity, DISTRICTS } from './city.js';
 import { buildAgents, MAX_AGENTS } from './agents.js';
 import { buildSwarm } from './swarm.js';
+import { buildFx } from './fx.js';
 import * as data from './data.js';
 import { $, fmt, esc, hhmm, makeContent, pushFeed, sysLine, renderStats, updAge, buildLabels, ping, bindSound } from './ui.js';
 
@@ -45,6 +46,9 @@ controls.autoRotateSpeed = 0.3;
 const city = buildCity(scene);
 const agents = buildAgents(scene);
 const swarm = buildSwarm(scene);
+const fx = buildFx(scene, camera);
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const dpos = (k, y) => V(DISTRICTS[k].pos[0], y ?? DISTRICTS[k].focus ?? 10, DISTRICTS[k].pos[1]);
 
 /* ------------------------------ post-processing ------------------------------ */
 const composer = new EffectComposer(renderer);
@@ -174,7 +178,7 @@ function setMode(m) {
   scene.fog.color.set(m === 'panic' ? 0x0a0203 : 0x010803);
   swarm.mat.uniforms.boost.value = m === 'panic' ? 2.2 : 1;
   if (m === 'panic') glitch = 1;
-  if (m === 'milestone') flyDistrict('vault');
+  if (m === 'milestone') { flyDistrict('vault'); [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => ping(f, 0.06, 'triangle', 1.2), i * 140)); }
   if (m === 'buyback') flyDistrict('furnace');
   return true;
 }
@@ -216,12 +220,17 @@ data.on('event', ({ e, live }) => {
   if (e.kind === 'node' && e.tokenId != null) {
     const i = data.S.seatOrder.indexOf(e.tokenId);
     const k = districtFor(e);
-    if (i >= 0 && i < agents.shown) agents.dispatch(i, k);
+    if (i >= 0 && i < agents.shown) {
+      const u = agents.units[i]; agents.dispatch(i, k);
+      const from = V(u.x, 3, u.z);
+      fx.spawn({ from, to: dpos(k), color: e.state === 'accepted' ? '#b4ffcb' : '#3dff8f', dur: 1.8, arc: 14, size: 3.2 });
+      fx.tag(from, `#${e.tokenId} ${e.state || ''} · ${(e.step || '').replace(/_/g, ' ')}`.trim());
+    }
     city.extra.hive.glow = 1;
     if (k === 'oracle') city.extra.oracle.flare = 1;
     ping(e.state === 'accepted' ? 700 : 560, 0.05);
   }
-  if (e.kind === 'done') { city.extra.ledger.pulse = 1; if (/oracle/.test(e.objective || '')) city.extra.oracle.flare = 1; ping(880, 0.05); }
+  if (e.kind === 'done') { fx.spawn({ from: dpos('hive', 30), to: dpos('ledger', 50), color: '#b4ffcb', dur: 2.2, arc: 24, size: 4.5 }); city.extra.ledger.pulse = 1; if (/oracle/.test(e.objective || '')) city.extra.oracle.flare = 1; ping(880, 0.05); }
   if (e.kind === 'site') ping(740, 0.05);
 });
 data.on('offline', () => sysLine('api.imd.fun not reachable from this view. The streets stay empty: no data, no agents.'));
@@ -235,6 +244,25 @@ data.on('block', ({ block, live }) => {
 });
 data.on('price', p => { $('#c-imd').textContent = '$' + p.toFixed(4); });
 setInterval(updAge, 1000);
+
+/* ------------------------------ grid-state scenes (simulation) ------------------------------ */
+let sceneClock = 0, soundClock = 0;
+function sceneTick(dt) {
+  sceneClock += dt; soundClock += dt;
+  const roofs = city.roofs;
+  if (mode === 'panic' && sceneClock > 0.07) {          // sellers rush the Gate and get bounced by the breach toll
+    sceneClock = 0; const r = roofs[(Math.random() * roofs.length) | 0];
+    fx.spawn({ from: V(r.x, r.y + 1, r.z), to: V((Math.random() - .5) * 6, 22 + (Math.random() - .5) * 8, 2), color: ALARM, dur: 1.4 + Math.random(), arc: 6 + Math.random() * 10, size: 2.6, bounce: true });
+    if (soundClock > 1.1) { soundClock = 0; ping(640, 0.05, 'sawtooth', 0.5); setTimeout(() => ping(480, 0.05, 'sawtooth', 0.5), 450); }
+  } else if (mode === 'buyback' && sceneClock > 0.1) {  // stored tolls flow from the Gate into the furnace and are burned
+    sceneClock = 0;
+    fx.spawn({ from: V((Math.random() - .5) * 4, 22, 0), to: dpos('furnace', 14), color: '#b4ffcb', dur: 2.2, arc: 26, size: 3, onArrive: () => { city.extra.furnace.flash = 1; } });
+    if (soundClock > 0.9) { soundClock = 0; ping(70, 0.12, 'sine', 0.9); }
+  } else if (mode === 'milestone' && sceneClock > 0.16) { // one tranche rises out of the vault
+    sceneClock = 0; const d = DISTRICTS.vault;
+    fx.spawn({ from: V(d.pos[0] + (Math.random() - .5) * 6, 8, d.pos[1] + (Math.random() - .5) * 6), to: V(d.pos[0], 70 + Math.random() * 30, d.pos[1]), color: MINT, dur: 2.4, arc: 2, size: 3.4 });
+  }
+}
 
 /* ------------------------------ loop ------------------------------ */
 const placeLabels = buildLabels(camera, openDistrict);
@@ -263,6 +291,8 @@ function frame() {
   glitch = Math.max(0, glitch - dt * 0.9); finalPass.uniforms.glitch.value = glitch;
   if (shared.wave.value > 0) { shared.wave.value += dt * 70; if (shared.wave.value > 260) shared.wave.value = -1; }
 
+  sceneTick(dt);
+  fx.update(dt * sp); fx.placeTags(dt);
   for (const f of city.anim) f(T, dt * sp, mode);
   agents.update(T, dt * sp, mode);
 
@@ -286,4 +316,4 @@ requestAnimationFrame(frame);
 }
 if (!reduced) { startIntro(); $('#skip').hidden = false; } else { controls.autoRotate = false; }
 data.start();
-window.__wg = { camera, controls, scene, endIntro, setMode, openDistrict };
+window.__wg = { camera, controls, scene, endIntro, setMode, openDistrict, fx, agents };
