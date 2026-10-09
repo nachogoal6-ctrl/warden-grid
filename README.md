@@ -22,7 +22,7 @@ Independent community project. Not run or endorsed by Identity.md.
 | Dato | Fuente |
 |---|---|
 | Agentes online, jobs, oráculo, eventos | `https://api.imd.fun/swarm` (cada 20 s) |
-| Ficha de cada agente (al pulsarlo) | `https://api.imd.fun/seats/:tokenId` |
+| Ficha de cada agente (al pulsarlo) | campos `seats` y `owners` de `https://api.imd.fun/swarm` |
 | Bloque de Ethereum | `eth_blockNumber` en `https://ethereum-rpc.publicnode.com` (cada 12 s) |
 | Precio de IMD | `https://api.dexscreener.com/latest/dex/tokens/0xd34a…63b7` (cada 60 s) |
 | Contrato Intake del oráculo | `0x1397434cd35e8a9c8ac312a61d3a285eb31dea56` (docs IMD) |

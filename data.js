@@ -1,6 +1,6 @@
 // Warden Grid — live data. Every number on the page comes from here; nothing is made up.
 //   IMD network:  https://api.imd.fun/swarm            (public, open CORS — imd docs "Agents and seats")
-//   One seat:     https://api.imd.fun/seats/:tokenId    (public — imd docs "Agents and seats")
+//   Seat records: the `seats` and `owners` fields of /swarm
 //   Block height: eth_blockNumber on https://ethereum-rpc.publicnode.com (public RPC, no key)
 //   IMD price:    https://api.dexscreener.com/latest/dex/tokens/0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7
 // When a source can't be reached the page says "no data".
@@ -54,11 +54,10 @@ export async function pollPrice() {
   } catch {}
 }
 
-const seatCache = new Map();
-export async function getSeat(tokenId) {
-  if (seatCache.has(tokenId)) return seatCache.get(tokenId);
-  const j = await getJSON(`https://api.imd.fun/seats/${tokenId}?work=5&reviews=0&collaborators=0`);
-  seatCache.set(tokenId, j); return j;
+// A seat's record comes from the same /swarm payload (seats + owners), so no extra request is needed.
+export function getSeat(tokenId) {
+  const s = S.swarm?.seats?.[tokenId]; if (!s) return null;
+  return { ...s, owner: Array.isArray(S.swarm.owners) ? S.swarm.owners[tokenId] : null };
 }
 
 export function start() {

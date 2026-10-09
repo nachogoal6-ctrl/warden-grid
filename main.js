@@ -126,7 +126,7 @@ canvas.addEventListener('pointerup', async e => {
   if (!hit || hit.instanceId == null) return;
   openSeat(hit.instanceId);
 });
-async function openSeat(i) {
+function openSeat(i) {
   const tokenId = data.S.seatOrder[i];
   const u = agents.units[i]; u.glow = 1; ping(740);
   openKey = null;
@@ -134,10 +134,9 @@ async function openSeat(i) {
   flyTo(p.clone().add(new THREE.Vector3(7, 5, 7)), p.clone().add(new THREE.Vector3(0, 1.5, 0)), 1.2);
   if (tokenId == null) { showDrawer('UNIT · NO SEAT', `Unit ${i + 1}`, `<p class="lede">This figure stands for one agent online, but the seat list from api.imd.fun is not loaded, so it can't be matched to a seat.</p>`); return; }
   showDrawer(`SEAT #${tokenId} · IMD AGENT`, `Agent #${tokenId}`, `<p class="lore">reading seat ${esc(tokenId)}…</p>`);
-  try {
-    const s = await data.getSeat(tokenId);
+  const s = data.getSeat(tokenId);
+  if (s) {
     const rate = s.attempts ? Math.round(s.accepted / s.attempts * 100) + '%' : null;
-    const work = (s.work || []).slice(0, 5).map(w => `<li><span>${esc((w.step || w.skill || w.kind || 'work').toString().replace(/_/g, ' '))}</span><span>${esc(w.verdict || w.state || '')}${w.submittedAt ? ' · ' + esc(hhmm(w.submittedAt)) : ''}</span></li>`).join('');
     $('#d-body').innerHTML = `<p class="lore">one of the swarm. this unit stands for seat ${esc(tokenId)}.</p>
       <div><p class="sect">Record</p><div class="grid3">
         <div class="kv"><span>Accepted</span><strong>${fmt(s.accepted)}</strong></div>
@@ -145,13 +144,13 @@ async function openSeat(i) {
         <div class="kv"><span>Accept rate</span>${rate ? `<strong>${rate}</strong>` : '<strong class="na">no data</strong>'}</div></div></div>
       <div><p class="sect">Seat</p><ul class="rows">
         <li><span>Agent id (ERC-8004)</span><span>${esc(s.agentId ?? '—')}</span></li>
-        <li><span>Status</span><span class="hot">${s.online ? 'online' : esc(s.status || 'offline')}</span></li>
+        <li><span>Working now</span><span class="hot">${s.working ? 'yes' : 'no'}${s.queued ? ' · ' + fmt(s.queued) + ' queued' : ''}</span></li>
+        <li><span>Last work</span><span>${s.last ? esc(new Date(s.last).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })) : '—'}</span></li>
         <li><span>Owner</span><span>${s.owner ? esc(s.owner.slice(0, 6) + '…' + s.owner.slice(-4)) : '—'}</span></li>
-        <li><span>Attempts · pending</span><span>${fmt(s.attempts)} · ${fmt(s.pending)}</span></li></ul></div>
-      ${work ? `<div><p class="sect">Latest work</p><ul class="rows">${work}</ul></div>` : ''}
-      <p class="src">Source: api.imd.fun/seats/${esc(tokenId)} · units are matched to seats by most recent work</p>`;
-  } catch {
-    $('#d-body').innerHTML = `<p class="lede">Seat #${esc(tokenId)} could not be read from api.imd.fun right now. No data.</p>`;
+        <li><span>Attempts · failed · pending</span><span>${fmt(s.attempts)} · ${fmt(s.failed)} · ${fmt(s.pending)}</span></li></ul></div>
+      <p class="src">Source: api.imd.fun/swarm (seats, owners) · units are matched to seats by most recent work</p>`;
+  } else {
+    $('#d-body').innerHTML = `<p class="lede">Seat #${esc(tokenId)} has no record in api.imd.fun right now. No data.</p>`;
   }
 }
 
