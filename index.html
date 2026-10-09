@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Warden Grid: a city made of falling code, patrolled by the IMD swarm. $WARD, a Uniswap v4 hook that guards holders. Independent community project.">
+<meta name="theme-color" content="#010703">
+<title>Warden Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed city made of falling code; HUD on the edges — top bar, swarm terminal (left), program file (right), status rail (bottom). */
+:root{
+  color-scheme: dark;
+  --void:#010402;                 /* background */
+  --glass:rgba(2,10,5,.84);
+  --glass-hi:rgba(3,14,7,.93);
+  --line:rgba(61,255,143,.18);
+  --ink:#9ff5bd;                  /* text: green too */
+  --dim:#3f8f5d;
+  --code:#3dff8f;                 /* phosphor green: structure, data */
+  --hot:#b4ffcb;                  /* bright head of the rain */
+  --deep:#21b864;                 /* secondary green */
+  --alarm:#ff4f5e;                /* breach only */
+  --f-display:"Share Tech Mono", "IBM Plex Mono", ui-monospace, monospace;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --f-body:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+}
+html,body{height:100%}
+body{margin:0;background:var(--void);color:var(--ink);font:14px/1.5 var(--f-mono);overflow:hidden}
+#scene{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--code);outline-offset:2px}
+
+.top{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;gap:16px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;background:linear-gradient(var(--void),rgba(1,4,2,.7) 70%,transparent)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand b{font:400 21px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--code);text-shadow:0 0 12px rgba(61,255,143,.55)}
+.brand b i{font-style:normal;animation:blink 1.1s steps(1) infinite}
+.brand small{display:block;font:500 10.5px/1.3 var(--f-mono);color:var(--dim);margin-top:4px}
+@keyframes blink{50%{opacity:0}}
+.nav{display:flex;gap:2px;margin-left:12px}
+.nav button{background:none;border:0;padding:6px 10px;font:400 13px/1 var(--f-display);letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.nav button:hover{color:var(--code)}
+.chips{margin-left:auto;display:flex;gap:8px;align-items:center}
+.chip{display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--line);background:var(--glass);font:500 11px/1 var(--f-mono);color:var(--dim);white-space:nowrap}
+.chip strong{color:var(--code);font-weight:600;font-size:12.5px;font-variant-numeric:tabular-nums}
+.chip .dot{width:7px;height:7px;background:var(--dim)}
+.chip.live .dot{background:var(--code);box-shadow:0 0 8px var(--code)}
+.chip.off .dot{background:var(--alarm)}
+
+.panel{position:fixed;z-index:15;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);font:400 12px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.tag{font:600 10px/1 var(--f-mono);letter-spacing:.08em;padding:4px 6px;border:1px solid currentColor}
+.tag.sim{color:var(--hot)} .tag.live{color:var(--code)} .tag.off{color:var(--alarm)}
+
+.wire{left:16px;top:74px;width:min(440px,calc(100vw - 32px))}
+.stats{display:flex;flex-wrap:wrap;gap:4px 14px;padding:9px 12px;font:500 11.5px/1.4 var(--f-mono);color:var(--dim);border-bottom:1px solid var(--line)}
+.stats b{color:var(--code);font-weight:600}
+.feed{list-style:none;margin:0;padding:6px 0;max-height:186px;overflow:auto;font:400 12px/1.65 var(--f-mono)}
+.feed li{display:grid;grid-template-columns:44px 52px 1fr;gap:8px;padding:0 12px;white-space:nowrap}
+.feed li span:last-child{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.feed .t{color:var(--dim)}
+.k-node{color:var(--code)} .k-agent{color:var(--hot)} .k-site{color:var(--deep)} .k-done{color:var(--code)} .k-sys{color:var(--dim)}
+.feed em{font-style:normal;color:var(--hot)}
+.feed .empty{display:block;color:var(--dim);padding:6px 12px;white-space:normal}
+.cmd{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--line)}
+.cmd label{color:var(--code);font:600 13px/1 var(--f-mono)}
+.cmd input{flex:1;min-width:0;background:none;border:0;color:var(--code);font:400 12.5px/1.4 var(--f-mono);outline:none;caret-color:var(--code)}
+.cmd input::placeholder{color:var(--dim)}
+
+.mode{left:16px;bottom:58px;width:min(440px,calc(100vw - 32px))}
+.modes{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px 4px}
+.modes button{display:flex;align-items:center;gap:7px;padding:7px 10px;background:transparent;border:1px solid var(--line);font:400 12.5px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.modes button i{width:7px;height:7px;background:var(--c)}
+.modes button[aria-pressed="true"]{color:var(--void);background:var(--c);border-color:var(--c)}
+.modes button[aria-pressed="true"] i{background:var(--void)}
+.mode p{margin:6px 12px 12px;font-size:13px;max-width:60ch}
+.mode p small{display:block;color:var(--dim);font:400 11px/1.5 var(--f-mono);margin-top:6px}
+
+.drawer{right:16px;top:74px;bottom:58px;width:min(400px,calc(100vw - 32px));display:flex;flex-direction:column;background:var(--glass-hi);transform:translateX(calc(100% + 24px));transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.drawer.open{transform:none}
+.dh{padding:16px 18px 14px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.dh .code{font:500 11px/1 var(--f-mono);color:var(--dim);letter-spacing:.08em}
+.dh h2{margin:7px 0 0;font:400 27px/1.05 var(--f-display);letter-spacing:.04em;color:var(--code);text-shadow:0 0 14px rgba(61,255,143,.45);text-wrap:balance}
+.x{margin-left:auto;flex:none;width:34px;height:34px;display:grid;place-items:center;background:none;border:1px solid var(--line)}
+.x:hover{border-color:var(--code);color:var(--code)}
+.db{overflow:auto;padding:16px 18px 20px;display:flex;flex-direction:column;gap:16px}
+.lede{margin:0;font-size:13.5px;line-height:1.65;max-width:60ch}
+.lore{margin:0;padding:11px 13px;border:1px dashed var(--line);font:400 12.5px/1.65 var(--f-mono);color:var(--code)}
+.lore::before{content:"> ";color:var(--dim)}
+.sect{font:400 11.5px/1 var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}
+.kv{border:1px solid var(--line);padding:9px 10px;min-width:0}
+.kv span{display:block;font:500 9.5px/1.2 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.kv strong{display:block;margin-top:5px;font:600 19px/1.1 var(--f-mono);font-variant-numeric:tabular-nums;color:var(--c,var(--code));overflow-wrap:anywhere}
+.kv strong.na{font-size:12.5px;color:var(--dim);font-weight:500}
+.rows{margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.rows li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rows li span:last-child{font:500 12px/1.4 var(--f-mono);color:var(--dim);text-align:right;overflow-wrap:anywhere;min-width:0}
+.rows li span.hot{color:var(--hot)}
+.rogues{display:grid;gap:8px}
+.rogue{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 12px;border:1px solid var(--line)}
+.rogue b{font:400 14px/1.2 var(--f-display);letter-spacing:.06em;color:var(--hot);text-shadow:0 0 8px rgba(61,255,143,.5)}
+.rogue span{font:500 10px/1.2 var(--f-mono);color:var(--dim);text-align:right;letter-spacing:.08em;text-transform:uppercase}
+.rogue p{grid-column:1/-1;margin:0;font-size:12.5px}
+.rogue p em{font-style:normal;color:var(--code);font-weight:600}
+.src{font:400 10.5px/1.5 var(--f-mono);color:var(--dim);margin:0}
+
+.rail{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:18px;
+  padding:9px 16px calc(9px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:rgba(1,4,2,.92);
+  font:500 11.5px/1.3 var(--f-mono);color:var(--dim);white-space:nowrap;overflow:hidden}
+.rail b{color:var(--code);font-weight:600}
+.rail .warn{color:var(--hot)}
+.rail .disc{margin-left:auto;font-size:10.5px}
+
+.acts{position:fixed;right:16px;bottom:58px;z-index:16;display:flex;gap:8px;transition:right .45s cubic-bezier(.2,.7,.2,1)}
+body.drawer-open .acts{right:calc(min(400px,100vw - 32px) + 32px)}
+.cta{display:flex;align-items:center;gap:10px;padding:12px 18px;border:1px solid var(--code);background:rgba(61,255,143,.1);color:var(--code);font:400 14px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase}
+.cta:hover,.cta[aria-pressed="true"]{background:var(--code);color:var(--void)}
+.sq{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line);background:var(--glass)}
+.sq:hover{border-color:var(--code);color:var(--code)}
+
+.hint{position:fixed;left:50%;bottom:58px;transform:translateX(-50%);z-index:11;padding:6px 10px;background:var(--glass);border:1px solid var(--line);font:400 11px/1 var(--f-mono);color:var(--dim);white-space:nowrap}
+body.drawer-open .hint{display:none}
+#labels{position:fixed;inset:0;z-index:12;pointer-events:none}
+.lbl{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:7px;padding:6px 9px;background:rgba(1,4,2,.88);border:1px solid var(--c);color:var(--c);font:400 13px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;will-change:transform}
+.lbl::before{content:"";width:6px;height:6px;background:var(--c);box-shadow:0 0 8px var(--c)}
+.lbl:hover{background:var(--c);color:var(--void)}
+.lbl:hover::before{background:var(--void)}
+
+#boot{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--void);transition:opacity .8s}
+#boot.gone{opacity:0;pointer-events:none}
+#boot pre{margin:0;font:400 14px/1.8 var(--f-display);color:var(--code);text-shadow:0 0 10px rgba(61,255,143,.5)}
+
+@media (max-width:900px){ .nav,.hint,.chip.hide-s{display:none} }
+@media (max-width:760px){
+  .wire .feed{max-height:110px} .wire .stats{display:none}
+  .mode{display:none} .mode.show{display:block;bottom:110px}
+  .rail .disc{display:none} .cta span{display:none} .acts{bottom:62px}
+  body.drawer-open .acts{display:none}
+  .drawer{top:auto;height:62vh;bottom:46px}
+  .chip.hide-xs{display:none}
+}
+@media (prefers-reduced-motion:reduce){.drawer,.acts{transition:none}.brand b i{animation:none}}
+</style>
+</head>
+<body>
+
+
+<canvas id="scene" aria-label="Warden Grid: a city made of falling code, patrolled by the IMD swarm"></canvas>
+<div id="labels"></div>
+
+<header class="top">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 27 8v8c0 6-5 10-12 12C8 26 3 22 3 16V8z" fill="none" stroke="#3dff8f" stroke-width="1.6"/><path d="M15 7v10a4 4 0 0 1-8 0" fill="none" stroke="#b4ffcb" stroke-width="1.9" stroke-linecap="square"/></svg>
+    <div><b>Warden_Grid<i>_</i></b><small>$WARD · the swarm runs the city</small></div>
+  </div>
+  <nav class="nav" aria-label="Programs">
+    <button data-go="hook">Gate</button>
+    <button data-go="oracle">Oracle</button>
+    <button data-go="hive">Nest</button>
+    <button data-go="vault">Vault</button>
+    <button data-go="ledger">Ledger</button>
+  </nav>
+  <div class="chips">
+    <div class="chip hide-xs" id="c-net"><i class="dot"></i>IMD API <strong id="c-net-v">…</strong></div>
+    <div class="chip hide-s"><span>BLK</span><strong id="c-blk">—</strong></div>
+    <div class="chip hide-xs"><span>IMD</span><strong id="c-imd">—</strong></div>
+    <div class="chip"><span>$WARD</span><strong style="color:var(--hot)">not launched</strong></div>
+  </div>
+</header>
+
+<span class="hint">drag to orbit · right-drag to pan · scroll to zoom · tap a label</span>
+
+<section class="panel wire" aria-label="Swarm terminal">
+  <div class="ph"><span>swarm.log</span><span class="tag off" id="wire-tag">connecting</span></div>
+  <div class="stats" id="stats"><span>waiting for api.imd.fun…</span></div>
+  <ul class="feed" id="feed"><li class="empty">Every move the swarm makes is logged here.</li></ul>
+  <form class="cmd" id="cmd" autocomplete="off"><label for="cmd-in">&gt;</label><input id="cmd-in" placeholder="type help" spellcheck="false"></form>
+</section>
+
+<section class="panel mode" id="mode" aria-label="Grid state">
+  <div class="ph"><span>grid.state</span><span class="tag sim">simulation</span></div>
+  <div class="modes" role="group" aria-label="Grid state">
+    <button style="--c:var(--code)" data-mode="calm" aria-pressed="true"><i></i>Stable</button>
+    <button style="--c:var(--alarm)" data-mode="panic" aria-pressed="false"><i></i>Breach</button>
+    <button style="--c:var(--hot)" data-mode="buyback" aria-pressed="false"><i></i>Burn</button>
+    <button style="--c:var(--deep)" data-mode="milestone" aria-pressed="false"><i></i>Unlock</button>
+  </div>
+  <p id="mode-p"></p>
+</section>
+
+<aside class="panel drawer" id="drawer" aria-label="Program details" aria-hidden="true">
+  <div class="dh"><div><div class="code" id="d-code"></div><h2 id="d-title"></h2></div>
+    <button class="x" id="d-x" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1 1 13" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
+  <div class="db" id="d-body"></div>
+</aside>
+
+<div class="acts">
+  <button class="sq" id="b-mode" aria-label="Grid state" style="display:none"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5"/></svg></button>
+  <button class="cta" id="b-listen" aria-pressed="false"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg><span>Hear the grid</span></button>
+  <button class="sq" id="b-home" aria-label="Reset view"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8 8 2l6 6M4 7v7h8V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+</div>
+
+<footer class="rail">
+  <span><b>$WARD</b> <span class="warn">not launched yet</span></span>
+  <span><b id="r-agents">—</b> agents on the grid</span>
+  <span>24h <b id="r-jobs">—</b> jobs · <b id="r-orc">—</b> oracle answers</span>
+  <span id="r-upd">no data yet</span>
+  <span class="disc">Independent community project. Not run or endorsed by Identity.md.</span>
+</footer>
+
+<div id="boot"><pre id="boot-t">&gt; loading the grid_</pre></div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+/* =============================== data sources ===============================
+   Every number on this page comes from one of these. When a source can't be reached the page says "no data".
+   - IMD network:  https://api.imd.fun/swarm  (public, open CORS — imd docs, "Agents and seats")
+   - Block height: eth_blockNumber on https://ethereum-rpc.publicnode.com (public RPC, no key)
+   - IMD price:    https://api.dexscreener.com/latest/dex/tokens/0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7
+   - Oracle intake contract 0x1397434cd35e8a9c8ac312a61d3a285eb31dea56 (imd docs, "Pay on chain")
+   - The number of walking agents = health.agentsOnline from api.imd.fun/swarm (capped at 1,000 for the GPU).
+   $WARD is not launched: every token figure shows "not launched yet".                                   */
+const IMD = '0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7';
+const INTAKE = '0x1397434cd35e8a9c8ac312a61d3a285eb31dea56';
+const S = { swarm:null, swarmAt:0, block:null, imdUsd:null, events:[], seen:new Set(), online:false };
+
+const $ = s => document.querySelector(s);
+const fmt = n => n==null ? '—' : Number(n).toLocaleString('en-US');
+const fmtBig = n => n==null ? '—' : n>=1e9 ? (n/1e9).toFixed(1)+'B' : n>=1e6 ? (n/1e6).toFixed(1)+'M' : n>=1e3 ? (n/1e3).toFixed(1)+'K' : String(n);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hhmm = d => new Date(d).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false});
+let seed = 4242; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================================ renderer ================================ */
+const canvas = $('#scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:false, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ReinhardToneMapping;
+renderer.toneMappingExposure = 1.4;
+
+const FOG = new THREE.Color(0x010803), FOG_DENSITY = 0.0105;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x010703);
+scene.fog = new THREE.FogExp2(FOG, FOG_DENSITY);
+
+const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.3, 700);
+const HOME = { pos:new THREE.Vector3(-74, 36, 84), target:new THREE.Vector3(2, 12, -4) };
+const portrait = () => innerWidth / innerHeight < 0.9;
+if (portrait()){ HOME.pos.multiplyScalar(1.45); camera.fov = 64; camera.updateProjectionMatrix(); }
+const INTRO = { pos:new THREE.Vector3(-64, 2.4, 35), target:new THREE.Vector3(-10, 7, 33) };   // street level on an avenue
+camera.position.copy(HOME.pos);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.copy(HOME.target);
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.maxPolarAngle = Math.PI*0.48; controls.minDistance = 6; controls.maxDistance = 200;
+controls.autoRotate = !reduced; controls.autoRotateSpeed = 0.3;
+controls.addEventListener('start', () => { controls.autoRotate = false; fly = null; });
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.9, 0.5, 0.12));
+composer.addPass(new OutputPass());
+
+const hemi = new THREE.HemisphereLight(0x1d5a35, 0x010402, 0.6); scene.add(hemi);
+const key = new THREE.DirectionalLight(0x3dff8f, 0.4); key.position.set(-30, 70, 40); scene.add(key);
+
+/* ============================ the code shader ============================
+   One glyph atlas, one shader. Facades scroll columns of glyphs downward, each column at its own speed,
+   with a bright head and a fading trail. Used by every building, so the whole city rains.            */
+function glyphAtlas(){
+  const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0,0,512,512);
+  g.fillStyle = '#fff'; g.font = '700 92px "Share Tech Mono", "IBM Plex Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const chars = '0123456789ABCDEF$#<>/=+*%&?:'.split('');
+  for (let i=0; i<16; i++){
+    const x = (i%4)*128 + 64, y = Math.floor(i/4)*128 + 66;
+    g.save(); g.translate(x, y); if (i%3===0) g.scale(-1, 1); g.fillText(chars[i % chars.length], 0, 0); g.restore();
+  }
+  const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = 4; return t;
+}
+const atlas = glyphAtlas();
+const CODE_VS = `
+  varying vec2 vUv; varying float vDepth;
+  void main(){
+    vUv = uv; vec4 mv = viewMatrix*modelMatrix*vec4(position,1.); vDepth = -mv.z; gl_Position = projectionMatrix*mv;
+  }`;
+const CODE_FS = `
+  uniform sampler2D atlas; uniform float time; uniform vec3 tint; uniform vec3 base; uniform float level;
+  uniform float cells; uniform vec3 fogColor; uniform float fogDensity; uniform float alarm;
+  varying vec2 vUv; varying float vDepth;
+  float h(float n){ return fract(sin(n*127.1)*43758.5453); }
+  float h2(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1)))*43758.5453); }
+  void main(){
+    vec3 col = base;
+    bool roof = vUv.x < 0.0015 && vUv.y > 0.998;
+    if (!roof){
+      vec2 cell = vUv * vec2(cells, cells*1.6);
+      float cx = floor(cell.x);
+      float speed = 1.2 + h(cx)*3.0;
+      float y = cell.y + time*speed;
+      float row = floor(y);
+      float idx = floor(h2(vec2(cx, row + floor(time*(0.5+h(cx+3.)*2.)))) * 16.);
+      vec2 g = fract(vec2(cell.x, y)); g = (g - .5)*1.15 + .5;
+      vec2 auv = (vec2(mod(idx,4.), 3. - floor(idx/4.)) + clamp(g, 0., 1.)) / 4.;
+      float glyph = texture2D(atlas, auv).r;
+      float trail = fract(-y*0.045 + h(cx+7.));
+      float head = smoothstep(0.985, 1.0, trail);
+      float b = glyph * (0.05 + pow(trail, 5.)*1.25) * level;
+      vec3 c = mix(tint, vec3(0.75, 1.0, 0.8), head*0.85);
+      col += c * b * (1.0 + head*2.5);
+      col = mix(col, vec3(col.g*1.6+0.02, col.g*0.22, col.g*0.28), alarm);
+    }
+    float f = 1. - exp(-fogDensity*fogDensity*vDepth*vDepth);
+    gl_FragColor = vec4(mix(col, fogColor, clamp(f,0.,1.)), 1.);
+  }`;
+const codeMats = [];
+function codeMaterial(tint, level=1, cells=2, base=0x020a05){
+  const m = new THREE.ShaderMaterial({
+    uniforms:{ atlas:{value:atlas}, time:{value:0}, tint:{value:new THREE.Color(tint)}, base:{value:new THREE.Color(base)},
+      level:{value:level}, cells:{value:cells}, fogColor:{value:FOG}, fogDensity:{value:FOG_DENSITY}, alarm:{value:0} },
+    vertexShader:CODE_VS, fragmentShader:CODE_FS });
+  codeMats.push(m); return m;
+}
+
+function boxWithUV(w, d, h, unit=2){
+  const g = new THREE.BoxGeometry(w, h, d);
+  const uv = g.attributes.uv;
+  for (let f=0; f<6; f++) for (let v=0; v<4; v++){
+    const i = f*4+v;
+    if (f===2 || f===3){ uv.setXY(i, 0.001, 0.999); continue; }
+    const span = (f<2 ? d : w);
+    uv.setXY(i, uv.getX(i) * span/(unit*2), uv.getY(i) * h/(unit*4));
+  }
+  return g;
+}
+
+/* ============================== ground ============================== */
+{
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshStandardMaterial({ color:0x011208, roughness:0.18, metalness:0.9 }));
+  ground.rotation.x = -Math.PI/2; scene.add(ground);
+  const grid = new THREE.GridHelper(280, 70, 0x0f6b38, 0x06301a);
+  grid.position.y = 0.03; grid.material.transparent = true; grid.material.opacity = 0.55; scene.add(grid);
+}
+
+/* ======================== districts (hero programs) ======================== */
+const G = '#3dff8f', HOT = '#b4ffcb', MINT = '#21e070';
+const DISTRICTS = {
+  hook:    { name:'The Gate',       code:'0x01 · THE HOOK',       color:G,    pos:[0,0],     tiers:[[11,11,30],[8,8,22],[5.5,5.5,16],[3,3,10]], ring:true },
+  oracle:  { name:'Oracle Node',    code:'0x02 · THE ORACLE',     color:HOT,  pos:[-30,-14], tiers:[[6,6,34],[4.5,4.5,24],[3,3,16]], antenna:20 },
+  hive:    { name:'The Nest',       code:'0x03 · THE SWARM',      color:G,    pos:[30,-20],  tiers:[[14,10,16],[11,8,14],[8,6,10]], ring:true },
+  vault:   { name:'The Vault',      code:'0x04 · TEAM TOKENS',    color:MINT, pos:[-26,22],  tiers:[[12,12,14],[9,9,8]] },
+  furnace: { name:'The Furnace',    code:'0x05 · BUYBACK & BURN', color:HOT,  pos:[26,22],   tiers:[[9,9,18],[7,7,10]], stack:true },
+  ledger:  { name:'The Ledger',     code:'0x06 · THE RECORD',     color:HOT,  pos:[6,-40],   ledger:true },
+  loyalty: { name:"Holders' Block", code:'0x07 · LOYAL HOLDERS',  color:MINT, pos:[-46,-42], tiers:[[8,8,10],[6,6,7]] },
+};
+const occupied = Object.values(DISTRICTS).map(d => ({ x:d.pos[0], z:d.pos[1], r:13 }));
+const heroEdges = {};
+
+function buildHero(k, d){
+  const grp = new THREE.Group(); grp.position.set(d.pos[0], 0, d.pos[1]);
+  const col = new THREE.Color(d.color);
+  const edgeMat = new THREE.LineBasicMaterial({ color:col.clone().multiplyScalar(1.9), transparent:true, opacity:0.95 });
+  heroEdges[k] = edgeMat;
+  if (d.ledger){
+    const geo = boxWithUV(10, 10, 62, 1.2);
+    const m = new THREE.Mesh(geo, codeMaterial(d.color, 2.6, 3, 0x031208)); m.position.y = 31; grp.add(m); d.mat = m.material;
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat); e.position.y = 31; grp.add(e);
+    d.top = 64;
+  } else {
+    let y = 0; const mat = codeMaterial(d.color, 1.7, 2, 0x031208); d.mat = mat;
+    for (const [w, dd, h] of d.tiers){
+      const geo = boxWithUV(w, dd, h);
+      const m = new THREE.Mesh(geo, mat); m.position.y = y + h/2; grp.add(m);
+      const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat); e.position.copy(m.position); grp.add(e);
+      y += h;
+    }
+    d.top = y;
+    if (d.antenna){
+      const a = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.3, d.antenna, 6), new THREE.MeshBasicMaterial({ color:col.clone().multiplyScalar(2) }));
+      a.position.y = y + d.antenna/2; grp.add(a);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 8), new THREE.MeshBasicMaterial({ color:col.clone().multiplyScalar(4) }));
+      tip.position.y = y + d.antenna; grp.add(tip); d.tip = tip; d.top = y + d.antenna;
+    }
+    if (d.ring){
+      const rm = new THREE.MeshBasicMaterial({ color:col.clone().multiplyScalar(2.4) });
+      const r = new THREE.Mesh(new THREE.TorusGeometry(k==='hook' ? 11 : 12, 0.12, 6, 120), rm);
+      r.rotation.x = Math.PI/2; r.position.y = k==='hook' ? 34 : 22; grp.add(r); d.ringMesh = r;
+      if (k==='hook'){ const r2 = new THREE.Mesh(r.geometry, new THREE.MeshBasicMaterial({ color:col.clone().multiplyScalar(2.4) })); r2.rotation.x = Math.PI/2; r2.scale.setScalar(0.7); r2.position.y = 56; grp.add(r2); d.ring2 = r2; }
+    }
+    if (d.stack){
+      const s = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 12, 12), new THREE.MeshBasicMaterial({ color:0x0b2416 }));
+      s.position.set(2.5, y + 6, 2.5); grp.add(s); d.stackMesh = s; d.top = y + 12;
+    }
+  }
+  const pad = new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({ color:col.clone(), transparent:true, opacity:0.12 }));
+  pad.scale.set(22, 22, 1); pad.rotation.x = -Math.PI/2; pad.position.y = 0.05; grp.add(pad);
+  const padE = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(1,1)), edgeMat);
+  padE.scale.copy(pad.scale); padE.rotation.x = -Math.PI/2; padE.position.y = 0.07; grp.add(padE);
+  scene.add(grp);
+}
+Object.entries(DISTRICTS).forEach(([k,d]) => buildHero(k, d));
+
+/* ============================ filler city ============================ */
+{
+  const geos = [];
+  const STEP = 7, HALF = 119;
+  for (let x=-HALF; x<=HALF; x+=STEP) for (let z=-HALF; z<=HALF; z+=STEP){
+    if (Math.abs(x) % 28 === 0 || Math.abs(z) % 35 === 0) continue;
+    if (occupied.some(o => Math.hypot(o.x-x, o.z-z) < o.r)) continue;
+    const dist = Math.hypot(x, z);
+    if (rnd() < 0.1 + dist/460) continue;
+    const w = 3 + rnd()*2.6, d = 3 + rnd()*2.6;
+    const h = 3 + Math.pow(rnd(), 2) * (40 - Math.min(dist, 110)*0.25);
+    const ox = x + (rnd()-0.5)*1.2, oz = z + (rnd()-0.5)*1.2;
+    const g = boxWithUV(w, d, h); g.translate(ox, h/2, oz); geos.push(g);
+    if (h > 16 && rnd() < 0.5){ const h2 = h*(0.2 + rnd()*0.3); const g2 = boxWithUV(w*0.65, d*0.65, h2); g2.translate(ox, h + h2/2, oz); geos.push(g2); }
+  }
+  scene.add(new THREE.Mesh(mergeGeometries(geos), codeMaterial(G, 1, 2)));
+}
+
+/* ===================== the sky wall: rain of code on the horizon ===================== */
+const skyMat = codeMaterial(G, 0.55, 1, 0x010402);
+skyMat.uniforms.fogDensity.value = 0.0; skyMat.side = THREE.BackSide;
+{
+  const g = new THREE.CylinderGeometry(330, 330, 260, 96, 1, true);
+  const uv = g.attributes.uv; for (let i=0; i<uv.count; i++) uv.setXY(i, uv.getX(i)*180, uv.getY(i)*70);
+  const sky = new THREE.Mesh(g, skyMat); sky.position.y = 110; scene.add(sky);
+}
+
+/* ============================ falling glyph rain ============================ */
+const RAIN = 2600;
+const rainGeo = new THREE.BufferGeometry();
+const rainPos = new Float32Array(RAIN*3), rainSpd = new Float32Array(RAIN);
+for (let i=0; i<RAIN; i++){ rainPos.set([(rnd()-0.5)*240, rnd()*120, (rnd()-0.5)*240], i*3); rainSpd[i] = 14 + rnd()*26; }
+rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+const rainSprite = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 64; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0,0,0,64); gr.addColorStop(0,'rgba(61,255,143,0)'); gr.addColorStop(0.85,'rgba(61,255,143,.8)'); gr.addColorStop(1,'rgba(180,255,203,1)');
+  g.fillStyle = gr; g.fillRect(6,0,4,64); return new THREE.CanvasTexture(c); })();
+const rainMat = new THREE.PointsMaterial({ size:1.6, map:rainSprite, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, color:0xffffff });
+scene.add(new THREE.Points(rainGeo, rainMat));
+
+/* ============================ the swarm: one figure per agent online ============================
+   Identical, faceless units with a single visor line. Count comes from api.imd.fun (no data -> none).   */
+const MAX_AGENTS = 1000;
+const bodyGeo = (() => {
+  const torso = new THREE.CylinderGeometry(0.34, 0.42, 1.25, 8); torso.translate(0, 1.1, 0);
+  const legs  = new THREE.CylinderGeometry(0.4, 0.3, 0.5, 8); legs.translate(0, 0.25, 0);
+  const head  = new THREE.SphereGeometry(0.27, 10, 8); head.translate(0, 1.98, 0);
+  return mergeGeometries([torso, legs, head].map(g => g.index ? g.toNonIndexed() : g));
+})();
+const bodyMat = new THREE.MeshStandardMaterial({ color:0x031a0b, roughness:0.4, metalness:0.6, emissive:0x0b3d1d, emissiveIntensity:0.8 });
+const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, MAX_AGENTS);
+const visorGeo = new THREE.BoxGeometry(0.42, 0.06, 0.08); visorGeo.translate(0, 2.0, 0.22);
+const visorMat = new THREE.MeshBasicMaterial({ color:new THREE.Color(G).multiplyScalar(3) });
+const visors = new THREE.InstancedMesh(visorGeo, visorMat, MAX_AGENTS);
+bodies.count = visors.count = 0; bodies.frustumCulled = visors.frustumCulled = false;
+scene.add(bodies, visors);
+const units = [];
+const heroKeys = Object.keys(DISTRICTS);
+for (let i=0; i<MAX_AGENTS; i++){
+  if (rnd() < 0.42){
+    // sentinels: ranks standing guard in rings around each program
+    const d = DISTRICTS[heroKeys[i % heroKeys.length]];
+    const ring = 9 + (i % 3)*1.6, a = rnd()*Math.PI*2;
+    units.push({ kind:'guard', x:d.pos[0] + Math.cos(a)*ring, z:d.pos[1] + Math.sin(a)*ring, rot:Math.atan2(Math.cos(a), Math.sin(a)), ph:rnd()*6 });
+  } else {
+    const alongX = rnd() < 0.5, k = Math.round((rnd()-0.5)*8);
+    const lane = (alongX ? k*35 : k*28) + (rnd() < 0.5 ? -2.4 : 2.4) + (rnd()-0.5)*1.2;
+    units.push({ kind:'walk', alongX, lane, t:(rnd()-0.5)*230, v:(rnd() < 0.5 ? -1 : 1)*(1.6 + rnd()*1.2), ph:rnd()*6 });
+  }
+}
+let agentsShown = 0;
+const dummy = new THREE.Object3D();
+
+/* =================== grid states (simulation of the hook's behaviour) =================== */
+const MODES = {
+  calm:{ text:'The grid is stable. The Warden program takes its standard toll on every swap and the code keeps falling.',
+         note:'Simulation of planned behaviour. No fees are live: $WARD is not launched yet.' },
+  panic:{ text:'Breach. The oracle reports the price falling hard against its 24-hour median. The Warden raises the toll on sellers, lowers it for buyers, and sends the extra to the furnace.',
+         note:'Planned mechanism, shown as a simulation. Thresholds will be published before launch.' },
+  buyback:{ text:'Burn cycle. The price sits under its 30-day median, as the oracle panel attests. Stored tolls buy tokens back and the furnace deletes them for good.',
+         note:'Planned mechanism, shown as a simulation. No buybacks have happened.' },
+  milestone:{ text:'Unlock. The agent panel has verified a public milestone from sources fixed in advance, so the vault releases one tranche of the team\'s tokens. Only that one.',
+         note:'Planned mechanism, shown as a simulation. No milestone has been attested yet.' },
+};
+let mode = 'calm';
+function setMode(m){
+  if (!MODES[m]) return false;
+  mode = m;
+  document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  $('#mode-p').innerHTML = esc(MODES[m].text) + `<small>${esc(MODES[m].note)}</small>`;
+  const red = new THREE.Color('#ff4f5e').multiplyScalar(2.4);
+  heroEdges.hook.color.copy(m==='panic' ? red : new THREE.Color(G).multiplyScalar(1.9));
+  DISTRICTS.hook.ringMesh.material.color.copy(m==='panic' ? red : new THREE.Color(G).multiplyScalar(2.4));
+  DISTRICTS.hook.ring2.material.color.copy(DISTRICTS.hook.ringMesh.material.color);
+  visorMat.color.copy(m==='panic' ? red : new THREE.Color(G).multiplyScalar(3));
+  heroEdges.vault.color.copy(new THREE.Color(MINT).multiplyScalar(m==='milestone' ? 3.4 : 1.9));
+  scene.fog.color.set(m==='panic' ? 0x0a0203 : 0x010803);
+  return true;
+}
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); ping(660); }));
+
+const EMB = 320; const embGeo = new THREE.BufferGeometry(); const embPos = new Float32Array(EMB*3);
+const embers = Array.from({length:EMB}, () => ({ x:(rnd()-0.5)*3, y:rnd()*44, z:(rnd()-0.5)*3, v:5+rnd()*9 }));
+embGeo.setAttribute('position', new THREE.BufferAttribute(embPos, 3));
+const embPts = new THREE.Points(embGeo, new THREE.PointsMaterial({ size:0.7, color:new THREE.Color(HOT).multiplyScalar(3), transparent:true }));
+embPts.position.set(DISTRICTS.furnace.pos[0]+2.5, DISTRICTS.furnace.top, DISTRICTS.furnace.pos[1]+2.5); scene.add(embPts);
+const beam = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 6, 140, 24, 1, true),
+  new THREE.MeshBasicMaterial({ color:new THREE.Color(MINT).multiplyScalar(1.4), transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide }));
+beam.position.set(DISTRICTS.vault.pos[0], 70, DISTRICTS.vault.pos[1]); scene.add(beam);
+
+/* ============================== labels ============================== */
+const labelBox = $('#labels');
+const labels = Object.entries(DISTRICTS).map(([k, d]) => {
+  const el = document.createElement('button'); el.className = 'lbl'; el.style.setProperty('--c', d.color); el.textContent = d.name;
+  el.addEventListener('click', () => openDistrict(k)); labelBox.appendChild(el);
+  return { el, v:new THREE.Vector3(d.pos[0], d.top + 3, d.pos[1]) };
+});
+const tmpV = new THREE.Vector3();
+function placeLabels(){
+  for (const l of labels){
+    tmpV.copy(l.v).project(camera);
+    const sy = (-tmpV.y*0.5+0.5)*innerHeight;
+    const vis = tmpV.z < 1 && Math.abs(tmpV.x) < 1.1 && sy > 66 && sy < innerHeight - 60;
+    l.el.style.display = vis ? '' : 'none';
+    if (vis){ const x = (tmpV.x*0.5+0.5)*innerWidth; l.el.style.transform = `translate(${x.toFixed(1)}px, ${(sy-30).toFixed(1)}px)`; l.el.style.zIndex = String(1000 - Math.round(tmpV.z*1000)); }
+  }
+}
+
+/* ============================== camera flights ============================== */
+let fly = null;
+function flyTo(pos, target, dur=1.6){ controls.autoRotate = false; fly = { p0:camera.position.clone(), t0:controls.target.clone(), p1:pos, t1:target, t:0, dur }; }
+function flyDistrict(k){
+  const d = DISTRICTS[k];
+  const t = new THREE.Vector3(d.pos[0], d.top*0.45, d.pos[1]);
+  const dir = new THREE.Vector3(camera.position.x - t.x, 0, camera.position.z - t.z).normalize();
+  const p = t.clone().add(dir.multiplyScalar(34 + d.top*0.5)); p.y = d.top*0.7 + 10;
+  if (innerWidth > 900){ const side = new THREE.Vector3().subVectors(p, t).cross(new THREE.Vector3(0,1,0)).normalize().multiplyScalar(-9); t.add(side); p.add(side); }
+  flyTo(p, t);
+}
+$('#b-home').addEventListener('click', () => { closeDrawer(); flyTo(HOME.pos.clone(), HOME.target.clone()); });
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => openDistrict(b.dataset.go)));
+
+/* ============================== program files ============================== */
+const kv = (label, val, color) => `<div class="kv" ${color?`style="--c:${color}"`:''}><span>${esc(label)}</span>${val==null ? '<strong class="na">no data</strong>' : `<strong>${esc(val)}</strong>`}</div>`;
+const na = label => `<div class="kv"><span>${esc(label)}</span><strong class="na">not launched yet</strong></div>`;
+const short = a => a.slice(0,6)+'…'+a.slice(-4);
+const srcIMD = () => `<p class="src">Source: api.imd.fun/swarm${S.swarmAt ? ' · read '+hhmm(S.swarmAt) : ' · not reachable from here'}</p>`;
+
+const CONTENT = {
+  hook: () => `<p class="lore">every trade enters the grid through one door. the Warden stands in it.</p>
+    <p class="lede">Every $WARD trade passes through the Gate. It is a Uniswap v4 hook: a contract that runs before and after each swap and enforces the rules that protect holders.</p>
+    <div><p class="sect">Token</p><div class="grid3">${na('Price')}${na('Swaps')}${na('Fees collected')}</div></div>
+    <div><p class="sect">What the hook will do</p><ul class="rows">
+      <li><span>Fee that reacts to panic</span><span class="hot">planned</span></li>
+      <li><span>Buyback and burn at the right time</span><span class="hot">planned</span></li>
+      <li><span>Team unlocks tied to milestones</span><span class="hot">planned</span></li>
+      <li><span>Rewards for holders who stay</span><span class="hot">planned</span></li></ul></div>
+    <div><p class="sect">Rogue programs</p><div class="rogues">
+      <div class="rogue"><b>sniper.exe</b><span>first block</span><p>Buys the first seconds of a launch and dumps on everyone after. <em>Blocked by the launch toll.</em></p></div>
+      <div class="rogue"><b>rug.exe</b><span>team wallet</span><p>Sells the team's bag the day it unlocks. <em>Blocked by the Vault: no milestone, no unlock.</em></p></div>
+      <div class="rogue"><b>stampede.exe</b><span>panic</span><p>One big sell turns into a run on the pool. <em>Throttled by the breach toll.</em></p></div>
+      <div class="rogue"><b>tourist.exe</b><span>flipper</span><p>In for a day, out with the rewards. <em>Outpaid by holders who stay.</em></p></div>
+    </div></div>
+    <p class="src">Contract not deployed. Address and audit will be listed here at launch.</p>`,
+  oracle: () => { const h = S.swarm?.health;
+    return `<p class="lore">the grid can't see outside itself. so it asks.</p>
+    <p class="lede">The hook can't read the outside world, so it asks the IMD oracle. A panel of independent agents answers, and only an answer they agree on gets signed and handed to the contract.</p>
+    <div><p class="sect">IMD oracle · last 24h</p><div class="grid3">${kv('Answers', h ? fmt(h.oraclesDoneLastDay) : null, HOT)}${kv('Agents online', h ? fmt(h.agentsOnline) : null, HOT)}${kv('Verifier', h ? (h.verifierUp ? 'up' : 'down') : null, G)}</div></div>
+    <div><p class="sect">Questions $WARD will ask</p><ul class="rows">
+      <li><span>Median price over the last 24h</span><span>uint256 · daily</span></li>
+      <li><span>Is the price under its 30-day median?</span><span>bool · daily</span></li>
+      <li><span>Was milestone N delivered?</span><span>bool · on request</span></li>
+      <li><span>Which wallets held all week?</span><span>address[] · weekly</span></li></ul></div>
+    <div><p class="sect">On-chain intake</p><ul class="rows"><li><span>Intake contract</span><span>${short(INTAKE)}</span></li><li><span>Price per question</span><span>0.5 IMD</span></li></ul></div>
+    ${srcIMD()}`; },
+  hive: () => { const h = S.swarm?.health, c = S.swarm?.counts;
+    return `<p class="lore">same build. same orders. hundreds of them. they never sleep.</p>
+    <p class="lede">The units on the streets are the IMD swarm: every figure is one agent online right now. Each runs on its own seat and builds, tests and reviews the contracts. They also sit on the oracle panels.</p>
+    <div><p class="sect">Swarm right now</p><div class="grid3">${kv('Online', h ? fmt(h.agentsOnline) : null)}${kv('Working', h ? fmt(h.workingNow) : null)}${kv('Seats enrolled', h ? fmt(h.seatsEnrolled) : null)}</div></div>
+    <div><p class="sect">Last 24h</p><div class="grid3">${kv('Jobs done', h ? fmt(h.jobsDoneLastDay) : null, HOT)}${kv('Steps accepted', h ? fmt(h.acceptedLastDay) : null, HOT)}${kv('Launches live', c ? fmt(c.launchesLive) : null, HOT)}</div></div>
+    <p class="src">Figures in the city: ${agentsShown ? fmt(agentsShown) : 'none (no data)'}${(h?.agentsOnline || 0) > MAX_AGENTS ? ', capped at 1,000' : ''}.</p>
+    ${srcIMD()}`; },
+  vault: () => `<p class="lore">access denied. until the work is done.</p>
+    <p class="lede">The team's tokens sit locked here. A tranche opens only when the oracle panel confirms a public milestone from sources fixed in advance. If the work isn't delivered, nothing unlocks.</p>
+    <div><p class="sect">Vault</p><div class="grid3">${na('Locked')}${na('Released')}${na('Next tranche')}</div></div>
+    <div><p class="sect">Milestones</p><ul class="rows">
+      <li><span>1 · Hook contracts audited and published</span><span>pending</span></li>
+      <li><span>2 · Oracle questions live on mainnet</span><span>pending</span></li>
+      <li><span>3 · Holder dashboard released</span><span>pending</span></li>
+      <li><span>4 · First weekly transparency report</span><span>pending</span></li></ul></div>
+    <p class="src">Milestones and their sources will be fixed on-chain at launch.</p>`,
+  furnace: () => `<p class="lore">what goes in is deleted. supply only goes down.</p>
+    <p class="lede">Part of every toll lands here. When the oracle says the price is under its 30-day median, the furnace buys tokens back and burns them.</p>
+    <div><p class="sect">Furnace</p><div class="grid3">${na('Tolls stored')}${na('Bought back')}${na('Burned')}</div></div>
+    <p class="src">No buyback has happened. Every one will link to its transaction.</p>`,
+  ledger: () => { const ev = S.events.slice(0,5).map(e => `<li><span>${esc(evText(e).plain)}</span><span>${esc(hhmm(e.at))}</span></li>`).join('');
+    return `<p class="lore">every block, a new page. nothing is ever erased.</p>
+    <p class="lede">The monolith of falling code flares with every Ethereum block. Everything the grid does is written down here.</p>
+    <div><p class="sect">Chain</p><div class="grid3">${kv('Ethereum block', S.block ? fmt(S.block) : null)}${kv('IMD price', S.imdUsd ? '$'+S.imdUsd.toFixed(4) : null, HOT)}${na('$WARD trades')}</div></div>
+    <div><p class="sect">Latest from the swarm</p><ul class="rows">${ev || '<li><span>No events yet</span><span>—</span></li>'}</ul></div>
+    <p class="src">Sources: ethereum-rpc.publicnode.com · api.dexscreener.com · api.imd.fun/swarm</p>`; },
+  loyalty: () => `<p class="lore">the ones who never left the grid are remembered.</p>
+    <p class="lede">Every week the oracle lists the wallets that never sold. Those holders get a larger share of the rewards than wallets that flip.</p>
+    <div><p class="sect">Holders' Block</p><div class="grid3">${na('Holders')}${na('Held all week')}${na('Rewards paid')}</div></div>
+    <p class="src">Planned. Rules will be published before launch.</p>`,
+};
+
+let openKey = null;
+function openDistrict(k){
+  const d = DISTRICTS[k]; if (!d) return false;
+  openKey = k;
+  $('#d-code').textContent = d.code; $('#d-title').textContent = d.name;
+  $('#d-body').innerHTML = CONTENT[k]();
+  const dr = $('#drawer'); dr.classList.add('open'); dr.setAttribute('aria-hidden','false');
+  document.body.classList.add('drawer-open'); flyDistrict(k); ping(520);
+  return true;
+}
+function closeDrawer(){ openKey = null; const dr = $('#drawer'); dr.classList.remove('open'); dr.setAttribute('aria-hidden','true'); document.body.classList.remove('drawer-open'); }
+$('#d-x').addEventListener('click', closeDrawer);
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+const refreshDrawer = () => { if (openKey) $('#d-body').innerHTML = CONTENT[openKey](); };
+
+/* ============================== swarm log ============================== */
+function evText(e){
+  const seat = e.tokenId != null ? `agent #${e.tokenId}` : 'swarm';
+  const step = (e.step || '').replace(/_/g,' ');
+  switch (e.kind){
+    case 'node':  return { k:'job',   cls:'k-node',  html:`${esc(seat)} <em>${esc(e.state||'')}</em> ${esc(step)}`, plain:`${seat} ${e.state||''} ${step}` };
+    case 'agent': return { k:'agent', cls:'k-agent', html:`${esc(seat)} <em>${esc(e.state||'')}</em>`, plain:`${seat} ${e.state||''}` };
+    case 'site':  return { k:'site',  cls:'k-site',  html:`site published ${esc(e.ensName ? e.ensName.split('.')[0] : '')}`, plain:'site published' };
+    case 'done':  return { k:'done',  cls:'k-done',  html:`job <em>${esc(e.state||'done')}</em> · ${esc(e.steps ?? '?')} steps`, plain:`job ${e.state||'done'}` };
+    default:      return { k:e.kind||'event', cls:'k-sys', html:esc(e.state||''), plain:e.state||'' };
+  }
+}
+const feed = $('#feed');
+function pushFeed(e, sound){
+  const t = evText(e); const li = document.createElement('li');
+  li.innerHTML = `<span class="t">${esc(hhmm(e.at))}</span><span class="${t.cls}">${esc(t.k)}</span><span>${t.html}</span>`;
+  feed.querySelector('.empty')?.remove(); feed.prepend(li);
+  while (feed.children.length > 40) feed.lastChild.remove();
+  if (sound){ ping(e.kind === 'done' ? 880 : e.kind === 'site' ? 740 : 590, 0.05); pulse = 1; }
+}
+function sysLine(text){
+  const li = document.createElement('li');
+  li.innerHTML = `<span class="t">${esc(hhmm(Date.now()))}</span><span class="k-sys">sys</span><span>${esc(text)}</span>`;
+  feed.querySelector('.empty')?.remove(); feed.prepend(li);
+}
+function renderStats(){
+  const h = S.swarm?.health;
+  $('#stats').innerHTML = h
+    ? `<span><b>${fmt(h.agentsOnline)}</b> agents online</span><span><b>${fmt(h.workingNow)}</b> working</span><span>24h <b>${fmt(h.jobsDoneLastDay)}</b> jobs</span><span><b>${fmt(h.oraclesDoneLastDay)}</b> oracle answers</span><span><b>${fmtBig(S.swarm.counts?.inferenceTokens)}</b> inference tokens</span>`
+    : `<span>api.imd.fun not reachable from this view — no data</span>`;
+  $('#r-agents').textContent = h ? fmt(h.agentsOnline) : '—';
+  $('#r-jobs').textContent = h ? fmt(h.jobsDoneLastDay) : '—';
+  $('#r-orc').textContent = h ? fmt(h.oraclesDoneLastDay) : '—';
+  const tag = $('#wire-tag'); tag.className = 'tag ' + (S.online ? 'live' : 'off'); tag.textContent = S.online ? 'live' : 'no data';
+  $('#c-net').className = 'chip hide-xs ' + (S.online ? 'live' : 'off'); $('#c-net-v').textContent = S.online ? 'live' : 'offline';
+}
+
+async function getJSON(url, opts){
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 9000);
+  try { const r = await fetch(url, { ...opts, signal:ctl.signal }); if (!r.ok) throw new Error(r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
+async function pollSwarm(first){
+  try {
+    const j = await getJSON('https://api.imd.fun/swarm');
+    S.swarm = j; S.swarmAt = Date.now(); S.online = true;
+    const evs = (j.events || []).slice().sort((a,b) => new Date(a.at) - new Date(b.at));
+    for (const e of evs){
+      const id = `${e.kind}|${e.at}|${e.jobId||''}|${e.tokenId??''}|${e.step||''}`;
+      if (S.seen.has(id)) continue; S.seen.add(id); S.events.unshift(e); pushFeed(e, !first);
+    }
+    S.events = S.events.slice(0, 60);
+    agentsShown = Math.min(MAX_AGENTS, j.health?.agentsOnline || 0);
+    bodies.count = visors.count = agentsShown;
+  } catch {
+    S.online = false;
+    if (first) sysLine('api.imd.fun not reachable from this view. The streets stay empty: no data, no agents.');
+  }
+  renderStats(); refreshDrawer(); updAge();
+}
+async function pollBlock(){
+  try {
+    const j = await getJSON('https://ethereum-rpc.publicnode.com', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ jsonrpc:'2.0', id:1, method:'eth_blockNumber', params:[] }) });
+    const b = parseInt(j.result, 16);
+    if (b && b !== S.block){ S.block = b; $('#c-blk').textContent = fmt(b); ledgerPulse = 1; ping(330, 0.04); }
+  } catch {}
+}
+async function pollPrice(){
+  try {
+    const j = await getJSON(`https://api.dexscreener.com/latest/dex/tokens/${IMD}`);
+    const pairs = (j.pairs || []).filter(p => p.baseToken?.address?.toLowerCase() === IMD && p.priceUsd);
+    pairs.sort((a,b) => (b.liquidity?.usd||0) - (a.liquidity?.usd||0));
+    if (pairs[0]){ S.imdUsd = Number(pairs[0].priceUsd); $('#c-imd').textContent = '$' + S.imdUsd.toFixed(4); }
+  } catch {}
+}
+function updAge(){ $('#r-upd').textContent = S.swarmAt ? `updated ${Math.max(0, Math.round((Date.now()-S.swarmAt)/1000))}s ago` : 'no data yet'; }
+setInterval(updAge, 1000);
+
+/* ============================== terminal ============================== */
+const HELP = 'commands: go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · stats · home · clear';
+$('#cmd').addEventListener('submit', e => {
+  e.preventDefault();
+  const inp = $('#cmd-in'); const [c, a] = inp.value.trim().toLowerCase().split(/\s+/); inp.value = '';
+  if (!c) return;
+  if (c === 'help') sysLine(HELP);
+  else if (c === 'go') sysLine(openDistrict(a) ? `jacking into ${DISTRICTS[a].name}` : `unknown program "${a||''}"`);
+  else if (c === 'state' || c === 'mode') sysLine(setMode(a) ? `grid.state = ${a} (simulation)` : `unknown state "${a||''}"`);
+  else if (c === 'stats'){ const h = S.swarm?.health; sysLine(h ? `${fmt(h.agentsOnline)} online · ${fmt(h.workingNow)} working · ${fmt(h.jobsDoneLastDay)} jobs/24h` : 'no data'); }
+  else if (c === 'home'){ closeDrawer(); flyTo(HOME.pos.clone(), HOME.target.clone()); sysLine('back to the skyline'); }
+  else if (c === 'clear') feed.innerHTML = '';
+  else sysLine(`command not found: ${c}. ${HELP}`);
+});
+
+/* ============================== sound ============================== */
+let actx = null, master = null;
+function startAudio(){
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  master = actx.createGain(); master.gain.value = 0; master.connect(actx.destination);
+  const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 600; lp.Q.value = 8; lp.connect(master);
+  [41.2, 61.7, 82.4].forEach((f, i) => { const o = actx.createOscillator(); o.type = i ? 'square' : 'sine'; o.frequency.value = f; o.detune.value = (i-1)*9;
+    const g = actx.createGain(); g.gain.value = i ? 0.035 : 0.22; o.connect(g); g.connect(lp); o.start(); });
+  const lfo = actx.createOscillator(); lfo.frequency.value = 0.08; const lg = actx.createGain(); lg.gain.value = 320; lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
+  master.gain.linearRampToValueAtTime(0.5, actx.currentTime + 2);
+}
+function ping(freq=600, vol=0.08){
+  if (!actx || actx.state !== 'running' || !master || master.gain.value < 0.01) return;
+  const o = actx.createOscillator(), g = actx.createGain(); o.type = 'square'; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol*0.6, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + 0.5);
+  o.connect(g); g.connect(master); o.start(); o.stop(actx.currentTime + 0.55);
+}
+$('#b-listen').addEventListener('click', e => {
+  const b = e.currentTarget, on = b.getAttribute('aria-pressed') !== 'true';
+  b.setAttribute('aria-pressed', String(on)); b.querySelector('span').textContent = on ? 'Grid audible' : 'Hear the grid';
+  if (on){ if (!actx) startAudio(); else { actx.resume(); master.gain.linearRampToValueAtTime(0.5, actx.currentTime + 1); } }
+  else if (actx) master.gain.linearRampToValueAtTime(0, actx.currentTime + 0.6);
+});
+$('#b-mode').addEventListener('click', () => $('#mode').classList.toggle('show'));
+const mq = matchMedia('(max-width:760px)'); const syncMq = () => { $('#b-mode').style.display = mq.matches ? '' : 'none'; }; mq.addEventListener('change', syncMq); syncMq();
+
+/* ============================== loop ============================== */
+let ledgerPulse = 0, pulse = 0;
+const clock = new THREE.Clock(); let T = 0;
+const ease = t => t<.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+function frame(){
+  const dt = Math.min(clock.getDelta(), 0.05); T += dt;
+  const sp = reduced ? 0.25 : 1;
+  if (fly){ fly.t += dt/fly.dur; const k = ease(Math.min(fly.t, 1)); camera.position.lerpVectors(fly.p0, fly.p1, k); controls.target.lerpVectors(fly.t0, fly.t1, k); if (fly.t >= 1) fly = null; }
+  controls.update();
+
+  const alarm = mode === 'panic' ? 0.55 + 0.25*Math.sin(T*5) : 0;
+  for (const m of codeMats){ m.uniforms.time.value = T*sp; m.uniforms.alarm.value = alarm*0.55; }
+  ledgerPulse = Math.max(0, ledgerPulse - dt*0.8); pulse = Math.max(0, pulse - dt*1.5);
+  DISTRICTS.ledger.mat.uniforms.level.value = 2.4 + ledgerPulse*3;
+  DISTRICTS.hive.mat.uniforms.level.value = 1.7 + pulse*2;
+
+  const rp = rainGeo.attributes.position.array;
+  for (let i=0; i<RAIN; i++){ rp[i*3+1] -= rainSpd[i]*dt*sp*(mode==='panic' ? 1.6 : 1); if (rp[i*3+1] < 0) rp[i*3+1] += 120; }
+  rainGeo.attributes.position.needsUpdate = true;
+
+  for (let i=0; i<agentsShown; i++){
+    const u = units[i];
+    if (u.kind === 'walk'){
+      u.t += u.v*dt*sp*(mode==='panic' ? 2.2 : 1); if (u.t > 118) u.t = -118; if (u.t < -118) u.t = 118;
+      dummy.position.set(u.alongX ? u.t : u.lane, Math.abs(Math.sin(T*6 + u.ph))*0.08, u.alongX ? u.lane : u.t);
+      dummy.rotation.set(0, u.alongX ? (u.v > 0 ? Math.PI/2 : -Math.PI/2) : (u.v > 0 ? 0 : Math.PI), 0);
+    } else {
+      dummy.position.set(u.x, 0, u.z); dummy.rotation.set(0, u.rot + Math.sin(T*0.4 + u.ph)*0.15, 0);
+    }
+    dummy.scale.setScalar(1.5); dummy.updateMatrix();
+    bodies.setMatrixAt(i, dummy.matrix); visors.setMatrixAt(i, dummy.matrix);
+  }
+  if (agentsShown){ bodies.instanceMatrix.needsUpdate = true; visors.instanceMatrix.needsUpdate = true; }
+
+  const H = DISTRICTS.hook;
+  H.ringMesh.rotation.z += dt*0.3*sp; H.ring2.rotation.z -= dt*0.45*sp;
+  heroEdges.hook.opacity = mode==='panic' ? 0.6 + 0.4*Math.sin(T*6) : 0.95;
+  DISTRICTS.hive.ringMesh.rotation.z += dt*0.2*sp;
+  DISTRICTS.oracle.tip.scale.setScalar(1 + 0.35*Math.sin(T*2.4));
+
+  embPts.visible = mode === 'buyback';
+  DISTRICTS.furnace.stackMesh.material.color.set(mode === 'buyback' ? 0x7dffb0 : 0x0b2416);
+  if (embPts.visible){
+    for (let i=0; i<EMB; i++){ const e = embers[i]; e.y += e.v*dt; if (e.y > 44){ e.y = 0; e.x = (Math.random()-0.5)*3; e.z = (Math.random()-0.5)*3; }
+      embPos[i*3] = e.x + Math.sin(T + e.y*0.3)*e.y*0.08; embPos[i*3+1] = e.y; embPos[i*3+2] = e.z; }
+    embGeo.attributes.position.needsUpdate = true;
+  }
+  beam.material.opacity += ((mode==='milestone' ? 0.22 : 0) - beam.material.opacity) * Math.min(1, dt*3);
+
+  composer.render(); placeLabels();
+  requestAnimationFrame(frame);
+}
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight; camera.fov = portrait() ? 64 : 52; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+});
+
+/* ============================== boot ============================== */
+setMode('calm');
+requestAnimationFrame(frame);
+{
+  const lines = ['> loading the grid_', '> connecting to the swarm_', '> the Warden is watching_'];
+  let i = 0; const el = $('#boot-t');
+  const step = () => { el.textContent = lines.slice(0, ++i).join('\n'); if (i < lines.length) setTimeout(step, 260); else setTimeout(() => $('#boot').classList.add('gone'), 380); };
+  step();
+}
+if (!reduced){ camera.position.copy(INTRO.pos); controls.target.copy(INTRO.target); setTimeout(() => flyTo(HOME.pos.clone(), HOME.target.clone(), 6), 1500); }
+pollSwarm(true); pollBlock(); pollPrice();
+setInterval(pollSwarm, 20000); setInterval(pollBlock, 12000); setInterval(pollPrice, 60000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grimhaven</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed gothic city at night; HUD floats on its edges — top bar, live wire (left), district dossier (right), status rail (bottom). */
+:root{
+  color-scheme: dark;
+  --night:#04050a;       /* sky / page */
+  --glass:rgba(10,13,24,.82);
+  --glass-hi:rgba(16,20,36,.92);
+  --line:rgba(196,206,230,.14);
+  --ink:#dfe8f5;
+  --dim:#7f8aa3;
+  --ice:#c9d6ee;         /* moonlight, structure */
+  --amber:#ffb347;       /* sodium lamps, the signal */
+  --violet:#9d8cff;      /* ravens: swarm agents */
+  --ok:#5df2a3;          /* milestone, live */
+  --alarm:#e0384f;       /* raid */
+  --f-display:"Cinzel", "Trajan Pro", Georgia, serif;
+  --f-ui:"Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --f-body:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+}
+html,body{height:100%}
+body{margin:0;background:var(--night);color:var(--ink);font:14px/1.5 var(--f-body);overflow:hidden}
+#scene{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+.mono{font-family:var(--f-mono)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- top bar ---------- */
+.top{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;gap:16px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;
+  background:linear-gradient(var(--night) 0%, rgba(5,6,12,.75) 70%, transparent);}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand svg{flex:none}
+.brand b{font:800 19px/1 var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+.brand small{display:block;font:500 10.5px/1.3 var(--f-mono);color:var(--dim);letter-spacing:.04em;margin-top:3px}
+.nav{display:flex;gap:4px;margin-left:12px}
+.nav button{background:none;border:0;padding:6px 10px;font:600 12px/1 var(--f-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.nav button:hover{color:var(--amber)}
+.chips{margin-left:auto;display:flex;gap:8px;align-items:center}
+.chip{display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--line);background:var(--glass);font:500 11px/1 var(--f-mono);color:var(--dim);white-space:nowrap}
+.chip strong{color:var(--ink);font-weight:600;font-size:12.5px}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.chip.live .dot{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.chip.off .dot{background:var(--alarm)}
+.chip.ice strong{color:var(--ice)}
+.lore{margin:0;padding:12px 14px;border-left:2px solid var(--amber);background:rgba(255,179,71,.06);font:italic 400 13.5px/1.6 var(--f-body);color:var(--ink);max-width:60ch}
+.rogues{display:grid;gap:8px}
+.rogue{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 12px;border:1px solid var(--line)}
+.rogue b{font:700 13px/1.2 var(--f-display);letter-spacing:.06em;color:var(--alarm)}
+.rogue span{font:500 10px/1.2 var(--f-mono);color:var(--dim);text-align:right;letter-spacing:.08em;text-transform:uppercase}
+.rogue p{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--ink)}
+.rogue p em{font-style:normal;color:var(--ok)}
+.chip.amb strong{color:var(--amber)}
+
+/* ---------- panels ---------- */
+.panel{position:fixed;z-index:15;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);font:600 11px/1 var(--f-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.tag{font:600 10px/1 var(--f-mono);letter-spacing:.08em;padding:4px 6px;border:1px solid currentColor}
+.tag.sim{color:var(--amber)}
+.tag.live{color:var(--ok)}
+.tag.off{color:var(--alarm)}
+
+/* wire (live feed) */
+.wire{left:16px;top:74px;width:min(440px,calc(100vw - 32px))}
+.stats{display:flex;flex-wrap:wrap;gap:4px 14px;padding:9px 12px;font:500 11.5px/1.4 var(--f-mono);color:var(--dim);border-bottom:1px solid var(--line)}
+.stats b{color:var(--ink);font-weight:600}
+.feed{list-style:none;margin:0;padding:6px 0;max-height:186px;overflow:auto;font:400 12px/1.65 var(--f-mono)}
+.feed li{display:grid;grid-template-columns:44px 58px 1fr;gap:8px;padding:0 12px;white-space:nowrap}
+.feed li span:last-child{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.feed .t{color:var(--dim)}
+.k-node{color:var(--violet)} .k-agent{color:var(--ice)} .k-site{color:var(--amber)} .k-done{color:var(--ok)} .k-sys{color:var(--dim)}
+.feed em{font-style:normal;color:var(--ok)}
+.feed .empty{display:block;color:var(--dim);padding:6px 12px;white-space:normal}
+.cmd{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--line)}
+.cmd label{color:var(--ice);font:600 13px/1 var(--f-mono)}
+.cmd input{flex:1;min-width:0;background:none;border:0;color:var(--ink);font:400 12.5px/1.4 var(--f-mono);outline:none}
+.cmd input::placeholder{color:var(--dim)}
+
+/* hook mode */
+.mode{left:16px;bottom:58px;width:min(440px,calc(100vw - 32px))}
+.modes{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px 4px}
+.modes button{display:flex;align-items:center;gap:7px;padding:7px 10px;background:transparent;border:1px solid var(--line);font:600 11.5px/1 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.modes button i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.modes button[aria-pressed="true"]{color:var(--night);background:var(--c);border-color:var(--c)}
+.modes button[aria-pressed="true"] i{background:var(--night)}
+.mode p{margin:6px 12px 12px;color:var(--ink);font-size:13px;max-width:60ch}
+.mode p small{display:block;color:var(--dim);font:400 11px/1.5 var(--f-mono);margin-top:6px}
+
+/* drawer */
+.drawer{right:16px;top:74px;bottom:58px;width:min(400px,calc(100vw - 32px));display:flex;flex-direction:column;background:var(--glass-hi);transform:translateX(calc(100% + 24px));transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.drawer.open{transform:none}
+.dh{padding:16px 18px 14px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.dh .code{font:600 11px/1 var(--f-mono);color:var(--dim);letter-spacing:.1em}
+.dh h2{margin:6px 0 0;font:700 25px/1.1 var(--f-display);letter-spacing:.02em;text-wrap:balance}
+.x{margin-left:auto;flex:none;width:34px;height:34px;display:grid;place-items:center;background:none;border:1px solid var(--line)}
+.x:hover{border-color:var(--ice);color:var(--ice)}
+.db{overflow:auto;padding:16px 18px 20px;display:flex;flex-direction:column;gap:16px}
+.db .lede{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink);max-width:60ch}
+.sect{font:600 10.5px/1 var(--f-ui);letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}
+.kv{border:1px solid var(--line);padding:9px 10px;min-width:0}
+.kv span{display:block;font:500 9.5px/1.2 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.kv strong{display:block;margin-top:5px;font:600 19px/1.1 var(--f-mono);font-variant-numeric:tabular-nums;color:var(--c,var(--ice));overflow-wrap:anywhere}
+.kv strong.na{font-size:12.5px;color:var(--dim);font-weight:500}
+.rows{margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.rows li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rows li span:last-child{font:500 12px/1.4 var(--f-mono);color:var(--dim);text-align:right;overflow-wrap:anywhere;min-width:0}
+.rows li span.ok{color:var(--ok)} .rows li span.amb{color:var(--amber)}
+.src{font:400 10.5px/1.5 var(--f-mono);color:var(--dim)}
+.src a{color:var(--ice)}
+
+/* bottom rail */
+.rail{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:18px;
+  padding:9px 16px calc(9px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:rgba(5,6,12,.9);
+  font:500 11.5px/1.3 var(--f-mono);color:var(--dim);white-space:nowrap;overflow:hidden}
+.rail b{color:var(--ink);font-weight:600}
+.rail .warn{color:var(--amber)}
+.rail .disc{margin-left:auto;font-size:10.5px}
+
+/* actions */
+.acts{position:fixed;right:16px;bottom:58px;z-index:16;display:flex;gap:8px;transition:right .45s cubic-bezier(.2,.7,.2,1)}
+body.drawer-open .acts{right:calc(min(400px,100vw - 32px) + 32px)}
+.cta{display:flex;align-items:center;gap:10px;padding:12px 18px;border:1px solid var(--amber);background:rgba(255,179,71,.1);color:var(--amber);font:700 12.5px/1 var(--f-ui);letter-spacing:.18em;text-transform:uppercase}
+.cta:hover,.cta[aria-pressed="true"]{background:var(--amber);color:var(--night)}
+.sq{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line);background:var(--glass)}
+.sq:hover{border-color:var(--ice);color:var(--ice)}
+
+/* hint + labels */
+.hint{position:fixed;left:50%;bottom:58px;transform:translateX(-50%);z-index:11;padding:6px 10px;background:var(--glass);border:1px solid var(--line);font:400 11px/1 var(--f-mono);color:var(--dim);white-space:nowrap}
+#labels{position:fixed;inset:0;z-index:12;pointer-events:none}
+.lbl{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:7px;padding:6px 9px;background:rgba(5,6,12,.86);border:1px solid var(--c);color:var(--ink);font:700 11.5px/1 var(--f-display);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transform-origin:0 100%;will-change:transform}
+.lbl::before{content:"";width:6px;height:6px;background:var(--c);box-shadow:0 0 8px var(--c)}
+.lbl:hover{background:var(--c);color:var(--night)}
+.lbl:hover::before{background:var(--night)}
+
+/* loader */
+#boot{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--night);transition:opacity .8s}
+#boot.gone{opacity:0;pointer-events:none}
+#boot div{font:500 12px/1.8 var(--f-mono);color:var(--dim);text-align:center}
+#boot b{display:block;font:800 26px/1 var(--f-display);letter-spacing:.3em;color:var(--amber);margin-bottom:12px}
+
+body.drawer-open .hint{display:none}
+@media (max-width:900px){
+  .nav,.hint,.chip.hide-s{display:none}
+}
+@media (max-width:760px){
+  .wire .feed{max-height:110px}
+  .wire .stats{display:none}
+  .mode{display:none}
+  .mode.show{display:block;bottom:110px}
+  .rail .disc{display:none}
+  .cta span{display:none}
+  .acts{bottom:62px}
+  body.drawer-open .acts{display:none}
+  .drawer{top:auto;height:62vh;bottom:46px}
+  .chip.hide-xs{display:none}
+}
+@media (prefers-reduced-motion:reduce){.drawer,.acts{transition:none}}
+</style>
+</head>
+<body>
+
+
+<canvas id="scene" aria-label="Grimhaven, a gothic city at night: each tower is a part of the protocol"></canvas>
+<div id="labels"></div>
+
+<header class="top">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 27 8v8c0 6-5 10-12 12C8 26 3 22 3 16V8z" fill="none" stroke="#c9d6ee" stroke-width="1.6"/><path d="M15 7v10a4 4 0 0 1-8 0" fill="none" stroke="#ffb347" stroke-width="1.9" stroke-linecap="square"/><circle cx="15" cy="7" r="1.6" fill="#ffb347"/></svg>
+    <div><b>Grimhaven</b><small>$WARD · the Warden guards the pool</small></div>
+  </div>
+  <nav class="nav" aria-label="Districts">
+    <button data-go="hook">Watchtower</button>
+    <button data-go="oracle">Signal</button>
+    <button data-go="hive">Rookery</button>
+    <button data-go="vault">Crypt</button>
+    <button data-go="ledger">Archive</button>
+  </nav>
+  <div class="chips">
+    <div class="chip hide-xs" id="c-net"><i class="dot"></i>IMD API <strong id="c-net-v">…</strong></div>
+    <div class="chip ice hide-s"><span>BLK</span><strong class="num" id="c-blk">—</strong></div>
+    <div class="chip amb hide-xs"><span>IMD</span><strong class="num" id="c-imd">—</strong></div>
+    <div class="chip"><span>$WARD</span><strong style="color:var(--amber)">not launched</strong></div>
+  </div>
+</header>
+
+<span class="hint">drag to orbit · right-drag to pan · scroll to zoom · tap a label</span>
+
+<section class="panel wire" aria-label="Live swarm wire">
+  <div class="ph"><span>Police scanner · swarm</span><span class="tag off" id="wire-tag">connecting</span></div>
+  <div class="stats" id="stats"><span>waiting for api.imd.fun…</span></div>
+  <ul class="feed" id="feed"><li class="empty">Every move the swarm makes comes over the scanner.</li></ul>
+  <form class="cmd" id="cmd" autocomplete="off"><label for="cmd-in">&gt;</label><input id="cmd-in" placeholder="type help for commands" spellcheck="false"></form>
+</section>
+
+<section class="panel mode" id="mode" aria-label="Hook mode">
+  <div class="ph"><span>Tonight in Grimhaven</span><span class="tag sim">simulation</span></div>
+  <div class="modes" role="group" aria-label="Hook mode">
+    <button style="--c:var(--ice)" data-mode="calm" aria-pressed="true"><i></i>Quiet night</button>
+    <button style="--c:var(--alarm)" data-mode="panic" aria-pressed="false"><i></i>Raid</button>
+    <button style="--c:var(--amber)" data-mode="buyback" aria-pressed="false"><i></i>The forge</button>
+    <button style="--c:var(--ok)" data-mode="milestone" aria-pressed="false"><i></i>Dawn</button>
+  </div>
+  <p id="mode-p"></p>
+</section>
+
+<aside class="panel drawer" id="drawer" aria-label="District details" aria-hidden="true">
+  <div class="dh"><div><div class="code" id="d-code"></div><h2 id="d-title"></h2></div>
+    <button class="x" id="d-x" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1 1 13" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
+  <div class="db" id="d-body"></div>
+</aside>
+
+<div class="acts">
+  <button class="sq" id="b-mode" aria-label="Hook mode" style="display:none"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5"/></svg></button>
+  <button class="cta" id="b-listen" aria-pressed="false"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg><span>Listen to the night</span></button>
+  <button class="sq" id="b-home" aria-label="Reset view"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8 8 2l6 6M4 7v7h8V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+</div>
+
+<footer class="rail">
+  <span><b>$WARD</b> <span class="warn">not launched yet</span></span>
+  <span>swarm <b class="num" id="r-agents">—</b> agents online</span>
+  <span>24h <b class="num" id="r-jobs">—</b> jobs · <b class="num" id="r-orc">—</b> oracle answers</span>
+  <span id="r-upd">no data yet</span>
+  <span class="disc">Independent community project. Not run or endorsed by Identity.md.</span>
+</footer>
+
+<div id="boot"><div><b>GRIMHAVEN</b>the city never sleeps…</div></div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+/* =============================== data sources ===============================
+   Every number on this page comes from one of these. Nothing is made up:
+   when a source can't be reached the page says "no data".
+   - IMD network:  https://api.imd.fun/swarm  (public, open CORS, per imd docs "Agents and seats")
+   - Block height: eth_blockNumber on https://ethereum-rpc.publicnode.com (public RPC, no key)
+   - IMD price:    https://api.dexscreener.com/latest/dex/tokens/0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7
+   - Oracle intake contract 0x1397434cd35e8a9c8ac312a61d3a285eb31dea56 (same address on every chain, imd docs "Pay on chain")
+   $WARD is not launched: every token figure shows "not launched yet".                                  */
+const IMD = '0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7';
+const INTAKE = '0x1397434cd35e8a9c8ac312a61d3a285eb31dea56';
+const S = { swarm:null, swarmAt:0, block:null, imdUsd:null, events:[], seen:new Set(), online:false };
+
+/* ================================ helpers ================================ */
+const $ = s => document.querySelector(s);
+const fmt = n => n==null ? '—' : Number(n).toLocaleString('en-US');
+const fmtBig = n => n==null ? '—' : n>=1e9 ? (n/1e9).toFixed(1)+'B' : n>=1e6 ? (n/1e6).toFixed(1)+'M' : n>=1e3 ? (n/1e3).toFixed(1)+'K' : String(n);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let seed = 1337; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================================ renderer ================================ */
+const canvas = $('#scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:false, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x06070d);
+scene.fog = new THREE.FogExp2(0x0a0c14, 0.0135);
+
+const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.5, 600);
+const HOME = { pos:new THREE.Vector3(-96, 34, 108), target:new THREE.Vector3(6, 24, -14) };
+const portrait = () => innerWidth / innerHeight < 0.9;
+if (portrait()){ HOME.pos.multiplyScalar(1.45); camera.fov = 64; camera.updateProjectionMatrix(); }
+camera.position.copy(HOME.pos);
+const INTRO = { pos:new THREE.Vector3(-46, 9, 70), target:new THREE.Vector3(-30, 26, 40) };
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.copy(HOME.target);
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.maxPolarAngle = Math.PI*0.47; controls.minDistance = 14; controls.maxDistance = 190;
+controls.autoRotate = !reduced; controls.autoRotateSpeed = 0.35;
+controls.addEventListener('start', () => { controls.autoRotate = false; fly = null; });
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.85, 0.6, 0.2);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+const hemi = new THREE.HemisphereLight(0x2b3352, 0x05060c, 0.7); scene.add(hemi);
+const moon = new THREE.DirectionalLight(0x9fb2d8, 0.55); moon.position.set(-40, 80, 30); scene.add(moon);
+
+/* ============================== textures ============================== */
+function windowTexture(palette, litChance){
+  const c = document.createElement('canvas'); c.width = 64; c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#06080f'; g.fillRect(0,0,64,128);
+  for (let y=0; y<16; y++) for (let x=0; x<4; x++){
+    if (x===0 && y===0) continue;            // keep (0,0) dark: roofs sample it
+    const lit = rnd() < litChance;
+    g.fillStyle = lit ? palette[(rnd()*palette.length)|0] : '#0c1020';
+    g.fillRect(x*16+3, y*8+2, 10, 4);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace;
+  t.magFilter = THREE.NearestFilter; t.anisotropy = 4;
+  return t;
+}
+const texA = windowTexture(['#ffcf87','#ffb347','#e9d9b8','#c9d6ee'], 0.3);
+const texB = windowTexture(['#ffd9a1','#ffb347','#ff9a3c'], 0.27);
+const texC = windowTexture(['#c9c2ff','#9d8cff','#ffcf87'], 0.3);
+
+function glyphTexture(){
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0,0,256,512);
+  g.font = '600 15px "IBM Plex Mono", monospace'; g.textBaseline = 'top';
+  const chars = '0123456789abcdefx$#@%&<>/\\=+';
+  for (let x=0; x<16; x++) for (let y=0; y<32; y++){
+    const a = rnd(); if (a < 0.35) continue;
+    g.fillStyle = `rgba(214,226,248,${(0.25 + a*0.75).toFixed(2)})`;
+    g.fillText(chars[(rnd()*chars.length)|0], x*16+3, y*16);
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+
+/* ============================== ground ============================== */
+{
+  const g = new THREE.PlaneGeometry(600, 600);
+  const m = new THREE.MeshStandardMaterial({ color:0x07080e, roughness:0.22, metalness:0.85 });
+  const ground = new THREE.Mesh(g, m); ground.rotation.x = -Math.PI/2; scene.add(ground);
+  const grid = new THREE.GridHelper(260, 52, 0x1c1e2c, 0x10121c);
+  grid.position.y = 0.02; grid.material.transparent = true; grid.material.opacity = 0.5; scene.add(grid);
+}
+
+/* ======================== districts (hero towers) ======================== */
+// Each district is a real part of the protocol. Position is on the city grid.
+const DISTRICTS = {
+  hook:     { name:'The Watchtower',  code:'I · THE HOOK',          color:'#c9d6ee', pos:[0,0],    tiers:[[11,11,26],[8.5,8.5,18],[6,6,14],[3.5,3.5,10]], ring:true, spire:16 },
+  oracle:   { name:'The Signal',      code:'II · THE ORACLE',       color:'#ffb347', pos:[-30,-14],tiers:[[6,6,30],[4.5,4.5,22],[3,3,18]], antenna:18 },
+  hive:     { name:'The Rookery',     code:'III · THE SWARM',       color:'#9d8cff', pos:[30,-20], tiers:[[14,10,14],[11,8,12],[8,6,10]], ring:true, spire:9 },
+  vault:    { name:'The Crypt',       code:'IV · TEAM TOKENS',      color:'#5df2a3', pos:[-24,22], cathedral:true },
+  furnace:  { name:'The Forge',       code:'V · BUYBACK & BURN',    color:'#ffb347', pos:[26,20],  tiers:[[9,9,16],[7,7,10]], stack:true },
+  ledger:   { name:'The Archive',     code:'VI · THE RECORD',       color:'#c9d6ee', pos:[6,-38],  ledger:true },
+  loyalty:  { name:'Old Quarter',     code:'VII · LOYAL HOLDERS',   color:'#5df2a3', pos:[-44,-40],tiers:[[8,8,9],[6,6,7]], spire:6 },
+};
+const occupied = Object.values(DISTRICTS).map(d => ({ x:d.pos[0], z:d.pos[1], r: d.ledger ? 10 : 12 }));
+
+const heroEdges = {};     // district -> LineBasicMaterial (to recolor in modes)
+const gothicDark = new THREE.MeshStandardMaterial({ color:0x0e101a, roughness:0.6, metalness:0.45 });
+const gargGeo = (() => {                                            // a crouched stone gargoyle, low poly
+  const parts = [];
+  const body = new THREE.BoxGeometry(0.7, 0.6, 1.0); body.translate(0, 0.3, 0.1); parts.push(body);
+  const head = new THREE.ConeGeometry(0.28, 0.7, 4); head.rotateX(Math.PI/2); head.translate(0, 0.55, 0.85); parts.push(head);
+  for (const s of [-1, 1]){ const wing = new THREE.ConeGeometry(0.35, 1.1, 3); wing.rotateZ(s*0.9); wing.translate(s*0.55, 0.85, -0.1); parts.push(wing); }
+  return mergeGeometries(parts.map(g => g.index ? g.toNonIndexed() : g));
+})();
+const gargoyle = () => new THREE.Mesh(gargGeo, gothicDark);
+const heroGroups = {};
+function boxWithUV(w, d, h, unit=2){
+  const g = new THREE.BoxGeometry(w, h, d);
+  const uv = g.attributes.uv;
+  for (let f=0; f<6; f++){
+    for (let v=0; v<4; v++){
+      const i = f*4+v;
+      if (f===2 || f===3){ uv.setXY(i, 0.001, 0.999); continue; } // roof/floor -> dark texel
+      const span = (f<2 ? d : w);
+      uv.setXY(i, uv.getX(i) * span/(unit*2), uv.getY(i) * h/(unit*4));
+    }
+  }
+  return g;
+}
+
+function buildHero(key, d){
+  const grp = new THREE.Group(); grp.position.set(d.pos[0], 0, d.pos[1]);
+  const col = new THREE.Color(d.color);
+  const edgeMat = new THREE.LineBasicMaterial({ color:col.clone().multiplyScalar(1.5), transparent:true, opacity:0.7 });
+  heroEdges[key] = edgeMat;
+  if (d.cathedral){
+    // cathedral above the Crypt: nave, pitched roof, twin bell towers, rose window
+    const stone = new THREE.MeshStandardMaterial({ color:0x111421, roughness:0.75, metalness:0.2, emissive:0xffffff, emissiveMap:texB, emissiveIntensity:0.5 });
+    const dark = new THREE.MeshStandardMaterial({ color:0x0d0f19, roughness:0.5, metalness:0.5 });
+    const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x,y,z); grp.add(m);
+      const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat); e.position.copy(m.position); e.rotation.copy(m.rotation); grp.add(e); return m; };
+    add(boxWithUV(9, 20, 11), stone, 0, 5.5, 2);                                   // nave
+    const roof = new THREE.CylinderGeometry(0, 6.4, 20, 4, 1); roof.rotateY(Math.PI/4); roof.scale(1, 1, 1);
+    const rg = new THREE.ConeGeometry(6.4, 6, 4, 1); rg.rotateY(Math.PI/4); rg.scale(1, 1, 3.1);
+    add(rg, dark, 0, 14, 2);                                                         // pitched roof
+    for (const sx of [-4.2, 4.2]){
+      add(boxWithUV(4.6, 4.6, 24), stone, sx, 12, -9.5);                             // bell towers
+      const sp = new THREE.ConeGeometry(3.1, 14, 4); sp.rotateY(Math.PI/4); add(sp, dark, sx, 31, -9.5);
+      for (const [px,pz] of [[1,1],[1,-1],[-1,1],[-1,-1]]){ const pg = new THREE.ConeGeometry(0.4, 4, 4); const pm = new THREE.Mesh(pg, dark); pm.position.set(sx+px*2.3, 26, -9.5+pz*2.3); grp.add(pm); }
+    }
+    for (const z of [-4, 2, 8]) for (const sx of [-1, 1]){                            // flying buttresses
+      const b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 9, 1), dark); b.position.set(sx*6.4, 4.5, z); grp.add(b);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.5, 0.8), dark); arm.position.set(sx*5.4, 9.2, z); arm.rotation.z = sx*0.5; grp.add(arm);
+    }
+    const rose = new THREE.Mesh(new THREE.CircleGeometry(2.4, 24), new THREE.MeshBasicMaterial({ color:new THREE.Color('#5df2a3').multiplyScalar(1.6) }));
+    rose.position.set(0, 13.5, -12.05); rose.rotation.y = Math.PI; grp.add(rose); d.rose = rose;
+    const front = new THREE.Mesh(boxWithUV(4, 1, 15), stone); front.position.set(0, 7.5, -9.5); grp.add(front);
+    d.top = 38;
+  } else if (d.ledger){
+    // a monolith of falling code
+    const geo = new THREE.BoxGeometry(9, 54, 9);
+    const tex = glyphTexture(); tex.repeat.set(1, 2.5);
+    const mat = new THREE.ShaderMaterial({
+      uniforms:{ map:{value:tex}, time:{value:0}, tint:{value:new THREE.Color('#c9d6ee')} },
+      transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+      vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+      fragmentShader:`uniform sampler2D map; uniform float time; uniform vec3 tint; varying vec2 vUv;
+        void main(){ vec2 uv=vec2(vUv.x, vUv.y*2.5 + time*.18 + floor(vUv.x*16.)*.137);
+          float g=texture2D(map,uv).r; float trail=fract(uv.y*1.7 - time*.4 + floor(vUv.x*16.)*.31);
+          float a=g*(0.25+1.6*pow(trail,6.)); gl_FragColor=vec4(tint*a*1.6, a); }`
+    });
+    d.shader = mat;
+    const m = new THREE.Mesh(geo, mat); m.position.y = 27; grp.add(m);
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat); e.position.y = 27; grp.add(e);
+    d.top = 58;
+  } else {
+    let y = 0;
+    const tex = key==='hive' ? texC : (d.color==='#ffb84d' ? texB : texA);
+    d.tiers.forEach(([w,dd,h]) => {
+      const geo = boxWithUV(w, dd, h);
+      const mat = new THREE.MeshStandardMaterial({ color:0x0b0f1c, roughness:0.55, metalness:0.4, emissive:0xffffff, emissiveMap:tex, emissiveIntensity:1.1 });
+      const m = new THREE.Mesh(geo, mat); m.position.y = y + h/2; grp.add(m);
+      const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat); e.position.copy(m.position); grp.add(e);
+      // art deco ribs: vertical piers on every face
+      const ribMat = gothicDark;
+      for (const [fw, fd, rotY] of [[w, dd, 0], [dd, w, Math.PI/2]]){
+        const n = Math.max(2, Math.round(fw/2.4));
+        for (let i=0; i<n; i++){
+          const off = -fw/2 + fw*(i+0.5)/n;
+          for (const side of [-1, 1]){
+            const rib = new THREE.Mesh(new THREE.BoxGeometry(0.28, h, 0.35), ribMat);
+            const lx = off, lz = side*(fd/2 + 0.12);
+            rib.position.set(rotY ? lz : lx, y + h/2, rotY ? lx : lz); grp.add(rib);
+          }
+        }
+      }
+      // cornice and gargoyles at each setback
+      const cor = new THREE.Mesh(new THREE.BoxGeometry(w + 0.8, 0.5, dd + 0.8), ribMat); cor.position.y = y + h; grp.add(cor);
+      for (const [sx, sz] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+        const gg = gargoyle(); gg.position.set(sx*(w/2+0.2), y + h + 0.25, sz*(dd/2+0.2)); gg.rotation.y = Math.atan2(sx, sz); grp.add(gg);
+      }
+      y += h;
+    });
+    d.top = y;
+    if (d.spire){
+      const top = d.tiers[d.tiers.length-1];
+      const sg = new THREE.ConeGeometry(Math.min(top[0], top[1])*0.62, d.spire, 4); sg.rotateY(Math.PI/4);
+      const sm = new THREE.Mesh(sg, new THREE.MeshStandardMaterial({ color:0x10131f, roughness:0.4, metalness:0.6 }));
+      sm.position.y = y + d.spire/2; grp.add(sm);
+      const se = new THREE.LineSegments(new THREE.EdgesGeometry(sg), edgeMat); se.position.copy(sm.position); grp.add(se);
+      // corner pinnacles
+      const [tw, td] = top;
+      for (const [sx, sz] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+        const pg = new THREE.ConeGeometry(0.45, d.spire*0.32, 4); const pm = new THREE.Mesh(pg, sm.material);
+        pm.position.set(sx*tw/2, y + d.spire*0.16, sz*td/2); grp.add(pm);
+      }
+      d.top = y + d.spire;
+    }
+    if (d.antenna){
+      const a = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.3, d.antenna, 6), new THREE.MeshBasicMaterial({ color:col.clone().multiplyScalar(2) }));
+      a.position.y = y + d.antenna/2; grp.add(a);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 8), new THREE.MeshBasicMaterial({ color:col.clone().multiplyScalar(4) }));
+      tip.position.y = y + d.antenna; grp.add(tip); d.tip = tip; d.top = y + d.antenna;
+    }
+    if (d.ring){
+      const r = new THREE.Mesh(new THREE.TorusGeometry(key==='hook' ? 11 : 12, 0.14, 6, 96), new THREE.MeshBasicMaterial({ color:col.clone().multiplyScalar(2.6) }));
+      r.rotation.x = Math.PI/2; r.position.y = key==='hook' ? 30 : 20; grp.add(r); d.ringMesh = r;
+      if (key==='hook'){
+        const r2 = r.clone(); r2.scale.setScalar(0.72); r2.position.y = 48; grp.add(r2); d.ring2 = r2;
+      }
+    }
+    if (d.stack){
+      const s = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 12, 12), new THREE.MeshStandardMaterial({ color:0x0b0f1c, emissive:0xff8a1e, emissiveIntensity:0.25 }));
+      s.position.set(2.5, y + 6, 2.5); grp.add(s); d.stackMesh = s; d.top = y + 12;
+    }
+  }
+  // pad under the tower
+  const pad = new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({ color:col.clone().multiplyScalar(0.9), transparent:true, opacity:0.18 }));
+  pad.scale.set(d.ledger ? 16 : 20, d.ledger ? 16 : 20, 1); pad.rotation.x = -Math.PI/2; pad.position.y = 0.04; grp.add(pad);
+  const padE = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(1,1)), edgeMat);
+  padE.scale.copy(pad.scale); padE.rotation.x = -Math.PI/2; padE.position.y = 0.06; grp.add(padE);
+  scene.add(grp); heroGroups[key] = grp;
+}
+Object.entries(DISTRICTS).forEach(([k,d]) => buildHero(k, d));
+
+/* ============================ filler city ============================ */
+{
+  const buckets = [[],[],[]];
+  const STEP = 7, HALF = 112;
+  for (let x=-HALF; x<=HALF; x+=STEP) for (let z=-HALF; z<=HALF; z+=STEP){
+    if (Math.abs(x) % 28 === 0 || Math.abs(z) % 35 === 0) continue;         // avenues
+    if (occupied.some(o => Math.hypot(o.x-x, o.z-z) < o.r)) continue;
+    if (z > 44 && z < 64) continue;                                      // the river
+    const dist = Math.hypot(x, z);
+    if (rnd() < 0.12 + dist/420) continue;
+    const w = 3 + rnd()*2.6, d = 3 + rnd()*2.6;
+    const h = 3 + Math.pow(rnd(), 2.2) * (34 - Math.min(dist, 110)*0.22);
+    const g = boxWithUV(w, d, h);
+    const ox = x + (rnd()-0.5)*1.2, oz = z + (rnd()-0.5)*1.2;
+    g.translate(ox, h/2, oz);
+    const r = rnd(); const bucket = buckets[r < 0.55 ? 0 : r < 0.85 ? 1 : 2]; bucket.push(g);
+    let roofY = h;
+    if (h > 14 && rnd() < 0.6){                         // art deco setback
+      const h2 = h*(0.25 + rnd()*0.3), w2 = w*0.68, d2 = d*0.68;
+      const g2 = boxWithUV(w2, d2, h2); g2.translate(ox, h + h2/2, oz); bucket.push(g2); roofY = h + h2;
+    }
+    if (rnd() < 0.42){                                  // pitched gothic roof
+      const rh = 1.5 + rnd()*Math.min(9, h*0.4);
+      const rg = new THREE.ConeGeometry(Math.max(w, d)*0.72, rh, 4); rg.rotateY(Math.PI/4);
+      rg.scale(w/Math.max(w,d), 1, d/Math.max(w,d));
+      const uv = rg.attributes.uv; for (let i=0; i<uv.count; i++) uv.setXY(i, 0.001, 0.999);
+      rg.translate(ox, roofY + rh/2, oz); bucket.push(rg);
+    }
+  }
+  [texA, texB, texC].forEach((tex, i) => {
+    if (!buckets[i].length) return;
+    const geo = mergeGeometries(buckets[i]);
+    const mat = new THREE.MeshStandardMaterial({ color:0x090c17, roughness:0.6, metalness:0.35, emissive:0xffffff, emissiveMap:tex, emissiveIntensity:0.85 });
+    scene.add(new THREE.Mesh(geo, mat));
+  });
+}
+
+/* ===================== sky: clouds, the Warden's signal, lightning ===================== */
+function cloudTexture(){
+  const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0,0,512,512);
+  for (let i=0; i<260; i++){
+    const x = rnd()*512, y = rnd()*512, rr = 30 + rnd()*90;
+    const gr = g.createRadialGradient(x,y,0,x,y,rr); gr.addColorStop(0, `rgba(255,255,255,${0.05 + rnd()*0.07})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; for (const dx of [-512,0,512]) for (const dy of [-512,0,512]) { g.save(); g.translate(dx,dy); g.fillRect(x-rr,y-rr,rr*2,rr*2); g.restore(); }
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2,2); return t;
+}
+const cloudTex = cloudTexture();
+const cloudMat = new THREE.MeshBasicMaterial({ map:cloudTex, color:0x262b3e, transparent:true, opacity:0.9, depthWrite:false, blending:THREE.AdditiveBlending, fog:false });
+const clouds = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), cloudMat); clouds.rotation.x = Math.PI/2; clouds.position.y = 96; scene.add(clouds);
+
+// the signal: the Warden's sigil (shield + hook) thrown onto the clouds
+function sigilTexture(){
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128,128,10,128,128,124); gr.addColorStop(0,'rgba(255,196,120,.9)'); gr.addColorStop(0.75,'rgba(255,160,60,.7)'); gr.addColorStop(1,'rgba(255,179,71,0)');
+  g.fillStyle = gr; g.beginPath(); g.arc(128,128,124,0,Math.PI*2); g.fill();
+  g.globalCompositeOperation = 'destination-out'; g.lineWidth = 15; g.lineCap = 'square'; g.lineJoin = 'miter';
+  g.beginPath(); g.moveTo(128,44); g.lineTo(196,78); g.lineTo(196,126); g.quadraticCurveTo(196,180,128,208); g.quadraticCurveTo(60,180,60,126); g.lineTo(60,78); g.closePath(); g.stroke();
+  g.lineWidth = 17; g.beginPath(); g.moveTo(128,78); g.lineTo(128,140); g.arc(108,140,20,0,Math.PI,false); g.stroke();
+  return new THREE.CanvasTexture(c);
+}
+const sigilMat = new THREE.MeshBasicMaterial({ map:sigilTexture(), transparent:true, opacity:0.75, depthWrite:false, blending:THREE.AdditiveBlending, fog:false, side:THREE.DoubleSide });
+const sigil = new THREE.Mesh(new THREE.PlaneGeometry(34, 34), sigilMat); sigil.position.set(34, 90, -96); sigil.lookAt(-96, 34, 108); scene.add(sigil);
+const SIG_SRC = new THREE.Vector3(-30, 70, -14);  // top of The Signal
+{
+  const len = SIG_SRC.distanceTo(sigil.position);
+  const bg = new THREE.CylinderGeometry(15, 1.2, len, 32, 1, true); bg.translate(0, -len/2, 0);
+  var beamMat = new THREE.ShaderMaterial({ transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide,
+    uniforms:{ color:{value:new THREE.Color('#ffb347')}, strength:{value:0.22} },
+    vertexShader:`varying float vY; void main(){ vY = uv.y; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader:`uniform vec3 color; uniform float strength; varying float vY; void main(){ float a = strength*(0.25+0.75*(1.-vY)); gl_FragColor = vec4(color*a, a); }` });
+  var signalBeam = new THREE.Mesh(bg, beamMat);
+  signalBeam.position.copy(sigil.position);
+  signalBeam.lookAt(SIG_SRC); signalBeam.rotateX(-Math.PI/2);
+  scene.add(signalBeam);
+}
+let signalFlare = 0; function flareSignal(){ signalFlare = 1; }
+let lightning = 0, nextBolt = 6 + Math.random()*10;
+
+/* ================= river, iron bridges, street lamps, low fog, searchlights ================= */
+{
+  const river = new THREE.Mesh(new THREE.PlaneGeometry(600, 18), new THREE.MeshStandardMaterial({ color:0x05070d, roughness:0.08, metalness:0.95 }));
+  river.rotation.x = -Math.PI/2; river.position.set(0, 0.05, 54); scene.add(river);
+  const ironMat = new THREE.LineBasicMaterial({ color:0x6a5a48 });
+  const deckMat = new THREE.MeshStandardMaterial({ color:0x15151c, roughness:0.7, metalness:0.6 });
+  for (const bx of [-56, 0, 56]){
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(6, 0.6, 26), deckMat); deck.position.set(bx, 2.4, 54); scene.add(deck);
+    const pts = [];
+    for (const sx of [-3, 3]){
+      for (let i=0; i<=12; i++){
+        const z0 = 41 + i*26/12, z1 = 41 + (i+1)*26/12;
+        const a0 = 2.7 + Math.sin(i/12*Math.PI)*7, a1 = 2.7 + Math.sin((i+1)/12*Math.PI)*7;
+        if (i<12) pts.push(bx+sx,a0,z0, bx+sx,a1,z1, bx+sx,2.7,z0, bx+sx,2.7,z1, bx+sx,2.7,z0, bx+sx,a1,z1);
+        pts.push(bx+sx,2.7,z0, bx+sx,a0,z0);
+      }
+    }
+    for (let i=0; i<=12; i+=2){ const z0 = 41 + i*26/12, a0 = 2.7 + Math.sin(i/12*Math.PI)*7; pts.push(bx-3,a0,z0, bx+3,a0,z0); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    scene.add(new THREE.LineSegments(g, ironMat));
+  }
+  // sodium street lamps along the avenues
+  const lamps = [];
+  for (let k=-4; k<=4; k++){
+    for (let t=-108; t<=108; t+=9){
+      if (!(t > 44 && t < 64)) lamps.push(k*28 + 2.2, 3.2, t);
+      if (!(k*35 > 44 && k*35 < 64)) lamps.push(t, 3.2, k*35 + 2.2);
+    }
+  }
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lamps, 3));
+  scene.add(new THREE.Points(lg, new THREE.PointsMaterial({ size:1.1, color:new THREE.Color('#ffb347').multiplyScalar(2.2), transparent:true, opacity:0.9 })));
+}
+const lowFogMat = new THREE.MeshBasicMaterial({ map:cloudTex.clone(), color:0x23263a, transparent:true, opacity:0.32, depthWrite:false, blending:THREE.AdditiveBlending });
+lowFogMat.map.needsUpdate = true; lowFogMat.map.repeat.set(3,3);
+const lowFog = new THREE.Mesh(new THREE.PlaneGeometry(320, 320), lowFogMat); lowFog.rotation.x = -Math.PI/2; lowFog.position.y = 3.5; scene.add(lowFog);
+const sweepers = [[60, -60], [-70, 40]].map(([x, z], i) => {
+  const g = new THREE.CylinderGeometry(4.5, 0.4, 120, 20, 1, true); g.translate(0, 60, 0);
+  const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide,
+    uniforms:{ color:{value:new THREE.Color('#c9d6ee')} },
+    vertexShader:`varying float vY; void main(){ vY = uv.y; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader:`uniform vec3 color; varying float vY; void main(){ float a = 0.09*(1.-vY); gl_FragColor = vec4(color*a, a); }` }));
+  m.position.set(x, 0, z); scene.add(m); return { m, ph:i*2.1 };
+});
+
+/* ============================ rain ============================ */
+const RAIN = 3200;
+const rainGeo = new THREE.BufferGeometry();
+const rainPos = new Float32Array(RAIN*6);
+for (let i=0; i<RAIN; i++){
+  const x = (rnd()-0.5)*220, y = rnd()*110, z = (rnd()-0.5)*220;
+  rainPos.set([x,y,z, x,y-1.6,z], i*6);
+}
+rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+const rainMat = new THREE.LineBasicMaterial({ color:0x7a86a6, transparent:true, opacity:0.3 });
+const rain = new THREE.LineSegments(rainGeo, rainMat); scene.add(rain);
+
+/* =================== traffic: decorative light trails on avenues =================== */
+const CARS = 160;
+const carGeo = new THREE.BufferGeometry();
+const carPos = new Float32Array(CARS*3), carCol = new Float32Array(CARS*3);
+const cars = [];
+for (let i=0; i<CARS; i++){
+  const alongX = rnd() < 0.5;
+  const lane = (Math.round((rnd()-0.5)*8) * (alongX ? 35 : 28)) + (rnd()<0.5 ? -1 : 1);
+  cars.push({ alongX, lane, t:(rnd()-0.5)*230, v:(rnd()<0.5?-1:1)*(6+rnd()*10) });
+  const c = new THREE.Color(rnd()<0.5 ? '#e0384f' : '#ffd9a1'); c.toArray(carCol, i*3);
+}
+carGeo.setAttribute('position', new THREE.BufferAttribute(carPos, 3));
+carGeo.setAttribute('color', new THREE.BufferAttribute(carCol, 3));
+const carPts = new THREE.Points(carGeo, new THREE.PointsMaterial({ size:0.8, vertexColors:true, transparent:true, opacity:0.9 }));
+scene.add(carPts);
+
+/* ========== swarm agents: one light per agent online (real count from api.imd.fun) ========== */
+const MAX_AGENTS = 1000;
+const agentGeo = new THREE.BufferGeometry();
+const agentPos = new Float32Array(MAX_AGENTS*3);
+agentGeo.setAttribute('position', new THREE.BufferAttribute(agentPos, 3));
+agentGeo.setDrawRange(0, 0);
+const agentMat = new THREE.PointsMaterial({ size:0.62, color:new THREE.Color('#9d8cff').multiplyScalar(2.2), transparent:true, opacity:0.95 });
+scene.add(new THREE.Points(agentGeo, agentMat));
+const agentPaths = [];
+const heroKeys = Object.keys(DISTRICTS);
+for (let i=0; i<MAX_AGENTS; i++){
+  const a = DISTRICTS[heroKeys[(rnd()*heroKeys.length)|0]], b = DISTRICTS[heroKeys[(rnd()*heroKeys.length)|0]];
+  agentPaths.push({ ax:a.pos[0], az:a.pos[1], bx:b.pos[0], bz:b.pos[1], h:18 + rnd()*30, s:0.03 + rnd()*0.06, p:rnd(), w:(rnd()-0.5)*14 });
+}
+let agentsShown = 0;
+
+/* =================== modes (simulation of the hook's behaviour) =================== */
+const MODES = {
+  calm:{ c:'#c9d6ee', text:'Rain on the rooftops, the signal turning over the clouds. The Warden takes the usual toll on every swap and the city sleeps.',
+         note:'Simulation of planned behaviour. No fees are live: $WARD is not launched yet.' },
+  panic:{ c:'#e0384f', text:'A raid. The oracle reports the price falling hard against its 24-hour median. The Warden raises the toll on sellers, lowers it for buyers, and the extra goes to the forge.',
+         note:'Planned mechanism, shown as a simulation. Thresholds will be published before launch.' },
+  buyback:{ c:'#ffb347', text:'The forge is lit. The price sits under its 30-day median, as the oracle panel attests. Stored tolls buy tokens back and the forge melts them down for good.',
+         note:'Planned mechanism, shown as a simulation. No buybacks have happened.' },
+  milestone:{ c:'#5df2a3', text:'Dawn over the Crypt. The agent panel has verified a public milestone from sources fixed in advance, so one tranche of the team\'s tokens walks free. Only that one.',
+         note:'Planned mechanism, shown as a simulation. No milestone has been attested yet.' },
+};
+let mode = 'calm';
+function setMode(m){
+  if (!MODES[m]) return false;
+  mode = m;
+  document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  $('#mode-p').innerHTML = esc(MODES[m].text) + `<small>${esc(MODES[m].note)}</small>`;
+  const hookCol = new THREE.Color(m==='panic' ? '#e0384f' : '#c9d6ee').multiplyScalar(m==='panic' ? 2.4 : 1.6);
+  heroEdges.hook.color.copy(hookCol);
+  DISTRICTS.hook.ringMesh.material.color.copy(hookCol);
+  DISTRICTS.hook.ring2.material.color.copy(hookCol);
+  heroEdges.vault.color.copy(new THREE.Color('#5df2a3').multiplyScalar(m==='milestone' ? 3 : 1.5));
+  rainMat.color.set(m==='panic' ? 0xa86a7a : 0x7a86a6);
+  scene.fog.color.set(m==='panic' ? 0x14070b : m==='buyback' ? 0x140d06 : m==='milestone' ? 0x0c1214 : 0x0a0c14);
+  beamMat.uniforms.color.value.set(m==='panic' ? '#e0384f' : '#ffb347');
+  sigilMat.color.set(m==='panic' ? '#ff6a7d' : '#ffffff');
+  return true;
+}
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); ping(660); }));
+
+// rising embers for buyback, beam for milestone
+const EMB = 300; const embGeo = new THREE.BufferGeometry(); const embPos = new Float32Array(EMB*3);
+const embers = Array.from({length:EMB}, () => ({ x:(rnd()-0.5)*3, y:rnd()*40, z:(rnd()-0.5)*3, v:4+rnd()*8 }));
+embGeo.setAttribute('position', new THREE.BufferAttribute(embPos, 3));
+const embPts = new THREE.Points(embGeo, new THREE.PointsMaterial({ size:0.6, color:new THREE.Color('#ffb347').multiplyScalar(3), transparent:true }));
+embPts.position.set(DISTRICTS.furnace.pos[0]+2.5, DISTRICTS.furnace.top, DISTRICTS.furnace.pos[1]+2.5); scene.add(embPts);
+const beam = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 5, 120, 24, 1, true),
+  new THREE.MeshBasicMaterial({ color:new THREE.Color('#5df2a3').multiplyScalar(1.5), transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide }));
+beam.position.set(DISTRICTS.vault.pos[0], 60, DISTRICTS.vault.pos[1]+2); scene.add(beam);
+
+/* ============================== labels ============================== */
+const labelBox = $('#labels');
+const labels = Object.entries(DISTRICTS).map(([k, d]) => {
+  const el = document.createElement('button');
+  el.className = 'lbl'; el.style.setProperty('--c', d.color); el.textContent = d.name;
+  el.addEventListener('click', () => openDistrict(k));
+  labelBox.appendChild(el);
+  return { k, el, v:new THREE.Vector3(d.pos[0], d.top + 3, d.pos[1]) };
+});
+const tmpV = new THREE.Vector3();
+function placeLabels(){
+  for (const l of labels){
+    tmpV.copy(l.v).project(camera);
+    const sy = (-tmpV.y*0.5+0.5)*innerHeight;
+    const vis = tmpV.z < 1 && Math.abs(tmpV.x) < 1.1 && sy > 66 && sy < innerHeight - 60;
+    l.el.style.display = vis ? '' : 'none';
+    if (vis){
+      const x = (tmpV.x*0.5+0.5)*innerWidth, y = (-tmpV.y*0.5+0.5)*innerHeight;
+      l.el.style.transform = `translate(${x.toFixed(1)}px, ${(y-30).toFixed(1)}px)`;
+      l.el.style.zIndex = String(1000 - Math.round(tmpV.z*1000));
+    }
+  }
+}
+
+/* ============================== camera flights ============================== */
+let fly = null;
+function flyTo(pos, target, dur=1.6){
+  controls.autoRotate = false;
+  fly = { p0:camera.position.clone(), t0:controls.target.clone(), p1:pos, t1:target, t:0, dur };
+}
+function flyDistrict(k){
+  const d = DISTRICTS[k];
+  const t = new THREE.Vector3(d.pos[0], d.top*0.45, d.pos[1]);
+  const dir = new THREE.Vector3(camera.position.x - t.x, 0, camera.position.z - t.z).normalize();
+  const dist = 34 + d.top*0.55;
+  const p = t.clone().add(dir.multiplyScalar(dist)); p.y = d.top*0.75 + 12;
+  // keep the tower left of the drawer on wide screens
+  if (innerWidth > 900){ const side = new THREE.Vector3().subVectors(p, t).cross(new THREE.Vector3(0,1,0)).normalize().multiplyScalar(-9); t.add(side); p.add(side); }
+  flyTo(p, t);
+}
+$('#b-home').addEventListener('click', () => { closeDrawer(); flyTo(HOME.pos.clone(), HOME.target.clone()); });
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => openDistrict(b.dataset.go)));
+
+/* ============================== drawer content ============================== */
+const kv = (label, val, color) => `<div class="kv" ${color?`style="--c:${color}"`:''}><span>${esc(label)}</span>${val==null ? '<strong class="na">no data</strong>' : `<strong>${esc(val)}</strong>`}</div>`;
+const na = label => `<div class="kv"><span>${esc(label)}</span><strong class="na">not launched yet</strong></div>`;
+const short = a => a.slice(0,6)+'…'+a.slice(-4);
+const srcIMD = () => `<p class="src">Source: api.imd.fun/swarm${S.swarmAt ? ' · read '+new Date(S.swarmAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}) : ' · not reachable from here'}</p>`;
+
+const CONTENT = {
+  hook: () => {
+    return `<p class="lore">Grimhaven's pool was a hunting ground. Snipers on the rooftops, rugs in the alleys. Then someone built a tower over the water and started keeping watch.</p>
+    <p class="lede">Every $WARD trade passes through the Watchtower. It is a Uniswap v4 hook: a contract that runs before and after each swap and enforces the rules that protect holders.</p>
+    <div><p class="sect">Token</p><div class="grid3">${na('Price')}${na('Swaps')}${na('Fees collected')}</div></div>
+    <div><p class="sect">What the hook will do</p><ul class="rows">
+      <li><span>Fee that reacts to panic</span><span class="amb">planned</span></li>
+      <li><span>Buyback and burn at the right time</span><span class="amb">planned</span></li>
+      <li><span>Team unlocks tied to milestones</span><span class="amb">planned</span></li>
+      <li><span>Rewards for holders who stay</span><span class="amb">planned</span></li></ul></div>
+    <div><p class="sect">Rogues' gallery</p><div class="rogues">
+      <div class="rogue"><b>The Sniper</b><span>first block</span><p>Buys the first seconds of a launch and dumps on everyone after. <em>Stopped by the launch toll.</em></p></div>
+      <div class="rogue"><b>The Rug</b><span>team wallet</span><p>Sells the team's bag the day it unlocks. <em>Stopped by the Crypt: no milestone, no unlock.</em></p></div>
+      <div class="rogue"><b>The Stampede</b><span>panic</span><p>One big sell turns into a run on the pool. <em>Slowed by the raid toll.</em></p></div>
+      <div class="rogue"><b>The Tourist</b><span>flipper</span><p>In for a day, out with the rewards. <em>Outpaid by holders in the Old Quarter.</em></p></div>
+    </div></div>
+    <p class="src">Contract not deployed. Address and audit will be listed here at launch.</p>`;
+  },
+  oracle: () => {
+    const h = S.swarm?.health;
+    return `<p class="lore">When the Warden needs to know what's happening outside the walls, the light goes up over the clouds.</p>
+    <p class="lede">The hook can't see the outside world, so it asks the IMD oracle. A panel of independent agents answers, and only an answer they agree on gets signed and handed to the contract. The beam flares each time the swarm finishes a job.</p>
+    <div><p class="sect">IMD oracle · last 24h</p><div class="grid3">${kv('Answers', h ? fmt(h.oraclesDoneLastDay) : null, '#ffb84d')}${kv('Agents online', h ? fmt(h.agentsOnline) : null, '#ffb84d')}${kv('Verifier', h ? (h.verifierUp ? 'up' : 'down') : null, h && !h.verifierUp ? '#ff5d73' : '#5df2a3')}</div></div>
+    <div><p class="sect">Questions $WARD will ask</p><ul class="rows">
+      <li><span>Median price over the last 24h</span><span>uint256 · daily</span></li>
+      <li><span>Is the price under its 30-day median?</span><span>bool · daily</span></li>
+      <li><span>Was milestone N delivered?</span><span>bool · on request</span></li>
+      <li><span>Which wallets held all week?</span><span>address[] · weekly</span></li></ul></div>
+    <div><p class="sect">On-chain intake</p><ul class="rows"><li><span>Intake contract</span><span>${short(INTAKE)}</span></li><li><span>Price per question</span><span>0.5 IMD</span></li></ul></div>
+    ${srcIMD()}`;
+  },
+  hive: () => {
+    const h = S.swarm?.health, c = S.swarm?.counts;
+    return `<p class="lore">They nest in the old bell tower and fly the city all night. Nobody pays them to lie.</p>
+    <p class="lede">The ravens are the IMD swarm. Each one is a seat running its own AI agent. They build, test and review the contracts, and they sit on the oracle panels.</p>
+    <div><p class="sect">Swarm right now</p><div class="grid3">${kv('Online', h ? fmt(h.agentsOnline) : null, '#b48cff')}${kv('Working', h ? fmt(h.workingNow) : null, '#b48cff')}${kv('Seats enrolled', h ? fmt(h.seatsEnrolled) : null, '#b48cff')}</div></div>
+    <div><p class="sect">Last 24h</p><div class="grid3">${kv('Jobs done', h ? fmt(h.jobsDoneLastDay) : null)}${kv('Steps accepted', h ? fmt(h.acceptedLastDay) : null)}${kv('Launches live', c ? fmt(c.launchesLive) : null)}</div></div>
+    <p class="lede" style="font-size:13px;color:var(--dim)">Each violet light over the city is one raven: one agent online right now.</p>
+    ${srcIMD()}`;
+  },
+  vault: () => `<p class="lore">Below the cathedral, the team's share lies sealed in stone. The door answers to one thing: proof.</p>
+    <p class="lede">The team's tokens sit locked here. A tranche opens only when the oracle panel confirms a public milestone from sources fixed in advance. If the work isn't delivered, nothing unlocks.</p>
+    <div><p class="sect">Vault</p><div class="grid3">${na('Locked')}${na('Released')}${na('Next tranche')}</div></div>
+    <div><p class="sect">Roadmap gates</p><ul class="rows">
+      <li><span>1 · Hook contracts audited and published</span><span>pending</span></li>
+      <li><span>2 · Oracle questions live on mainnet</span><span>pending</span></li>
+      <li><span>3 · Holder dashboard released</span><span>pending</span></li>
+      <li><span>4 · First weekly transparency report</span><span>pending</span></li></ul></div>
+    <p class="src">Milestones and their sources will be fixed on-chain at launch.</p>`,
+  furnace: () => `<p class="lore">Down by the docks, the old ironworks still burn. What goes in doesn't come out.</p>
+    <p class="lede">Part of every toll lands here. When the oracle says the price is under its 30-day median, the forge buys tokens back and burns them. Supply only goes down.</p>
+    <div><p class="sect">Forge</p><div class="grid3">${na('Fees stored')}${na('Bought back')}${na('Burned')}</div></div>
+    <p class="src">No buyback has happened. Every one will link to its transaction.</p>`,
+  ledger: () => {
+    const ev = S.events.slice(0,5).map(e => `<li><span>${esc(evText(e).plain)}</span><span>${esc(evTime(e))}</span></li>`).join('');
+    return `<p class="lore">The city keeps its records in a tower no one can bribe. Every block, a new page.</p>
+    <p class="lede">A tower of falling code that brightens with every Ethereum block. Everything the city does is written down here.</p>
+    <div><p class="sect">Chain</p><div class="grid3">${kv('Ethereum block', S.block ? fmt(S.block) : null)}${kv('IMD price', S.imdUsd ? '$'+S.imdUsd.toFixed(4) : null, '#ffb84d')}${na('$WARD trades')}</div></div>
+    <div><p class="sect">Latest from the swarm</p><ul class="rows">${ev || '<li><span>No events yet</span><span>—</span></li>'}</ul></div>
+    <p class="src">Sources: ethereum-rpc.publicnode.com · api.dexscreener.com · api.imd.fun/swarm</p>`;
+  },
+  loyalty: () => `<p class="lore">The families who never left when the city went dark. Grimhaven remembers them.</p>
+    <p class="lede">Every week the oracle lists the wallets that never sold. Those holders get a larger share of the rewards than wallets that flip.</p>
+    <div><p class="sect">Old Quarter</p><div class="grid3">${na('Holders')}${na('Held all week')}${na('Rewards paid')}</div></div>
+    <p class="src">Planned. Rules will be published before launch.</p>`,
+};
+
+let openKey = null;
+function openDistrict(k){
+  const d = DISTRICTS[k]; if (!d) return false;
+  openKey = k;
+  $('#d-code').textContent = d.code; $('#d-title').textContent = d.name; $('#d-title').style.color = d.color;
+  $('#d-body').innerHTML = CONTENT[k]();
+  const dr = $('#drawer'); dr.classList.add('open'); dr.setAttribute('aria-hidden','false');
+  document.body.classList.add('drawer-open');
+  flyDistrict(k); ping(520);
+  return true;
+}
+function closeDrawer(){
+  openKey = null; const dr = $('#drawer'); dr.classList.remove('open'); dr.setAttribute('aria-hidden','true');
+  document.body.classList.remove('drawer-open');
+}
+$('#d-x').addEventListener('click', closeDrawer);
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+const refreshDrawer = () => { if (openKey) $('#d-body').innerHTML = CONTENT[openKey](); };
+
+/* ============================== live wire ============================== */
+function evTime(e){ return new Date(e.at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false}); }
+function evText(e){
+  const seat = e.tokenId != null ? `agent #${e.tokenId}` : 'swarm';
+  const step = (e.step || '').replace(/_/g,' ');
+  switch (e.kind){
+    case 'node':  return { k:'job',   cls:'k-node',  html:`${esc(seat)} <em>${esc(e.state||'')}</em> ${esc(step)}`, plain:`${seat} ${e.state||''} ${step}` };
+    case 'agent': return { k:'agent', cls:'k-agent', html:`${esc(seat)} <em>${esc(e.state||'')}</em>`, plain:`${seat} ${e.state||''}` };
+    case 'site':  return { k:'site',  cls:'k-site',  html:`site published ${esc(e.ensName ? e.ensName.split('.')[0] : '')}`, plain:`site published` };
+    case 'done':  return { k:'done',  cls:'k-done',  html:`job <em>${esc(e.state||'done')}</em> · ${esc(e.steps ?? '?')} steps`, plain:`job ${e.state||'done'}` };
+    default:      return { k:e.kind||'event', cls:'k-sys', html:esc(e.state||''), plain:e.state||'' };
+  }
+}
+const feed = $('#feed');
+function pushFeed(e, sound){
+  const t = evText(e);
+  const li = document.createElement('li');
+  li.innerHTML = `<span class="t">${esc(evTime(e))}</span><span class="${t.cls}">${esc(t.k)}</span><span>${t.html}</span>`;
+  feed.querySelector('.empty')?.remove();
+  feed.prepend(li);
+  while (feed.children.length > 40) feed.lastChild.remove();
+  if (sound){ ping(e.kind === 'done' ? 880 : e.kind === 'site' ? 740 : 590, 0.05); if (e.kind === 'done' || /oracle/.test(e.step||'')) flareSignal(); }
+}
+function sysLine(text){
+  const li = document.createElement('li');
+  li.innerHTML = `<span class="t">${esc(new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}))}</span><span class="k-sys">sys</span><span>${esc(text)}</span>`;
+  feed.querySelector('.empty')?.remove(); feed.prepend(li);
+}
+
+function renderStats(){
+  const h = S.swarm?.health;
+  $('#stats').innerHTML = h
+    ? `<span><b>${fmt(h.agentsOnline)}</b> agents online</span><span><b>${fmt(h.workingNow)}</b> working</span><span>24h <b>${fmt(h.jobsDoneLastDay)}</b> jobs</span><span><b>${fmt(h.oraclesDoneLastDay)}</b> oracle answers</span><span><b>${fmtBig(S.swarm.counts?.inferenceTokens)}</b> inference tokens</span>`
+    : `<span>api.imd.fun not reachable from this view — no data</span>`;
+  $('#r-agents').textContent = h ? fmt(h.agentsOnline) : '—';
+  $('#r-jobs').textContent = h ? fmt(h.jobsDoneLastDay) : '—';
+  $('#r-orc').textContent = h ? fmt(h.oraclesDoneLastDay) : '—';
+  const tag = $('#wire-tag'); tag.className = 'tag ' + (S.online ? 'live' : 'off'); tag.textContent = S.online ? 'live' : 'no data';
+  const net = $('#c-net'); net.className = 'chip hide-xs ' + (S.online ? 'live' : 'off'); $('#c-net-v').textContent = S.online ? 'live' : 'offline';
+}
+
+/* ============================== fetching ============================== */
+async function getJSON(url, opts){
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 9000);
+  try { const r = await fetch(url, { ...opts, signal:ctl.signal }); if (!r.ok) throw new Error(r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
+async function pollSwarm(first){
+  try {
+    const j = await getJSON('https://api.imd.fun/swarm');
+    S.swarm = j; S.swarmAt = Date.now(); S.online = true;
+    const evs = (j.events || []).slice().sort((a,b) => new Date(a.at) - new Date(b.at));
+    for (const e of evs){
+      const id = `${e.kind}|${e.at}|${e.jobId||''}|${e.tokenId??''}|${e.step||''}`;
+      if (S.seen.has(id)) continue; S.seen.add(id);
+      S.events.unshift(e); pushFeed(e, !first);
+    }
+    S.events = S.events.slice(0, 60);
+    agentsShown = Math.min(MAX_AGENTS, j.health?.agentsOnline || 0);
+    agentGeo.setDrawRange(0, agentsShown);
+  } catch (err) {
+    S.online = false;
+    if (first) sysLine('api.imd.fun not reachable from this view. Showing no live data.');
+  }
+  renderStats(); refreshDrawer(); updAge();
+}
+async function pollBlock(){
+  try {
+    const j = await getJSON('https://ethereum-rpc.publicnode.com', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ jsonrpc:'2.0', id:1, method:'eth_blockNumber', params:[] }) });
+    const b = parseInt(j.result, 16);
+    if (b && b !== S.block){ S.block = b; $('#c-blk').textContent = fmt(b); pulseLedger(); }
+  } catch {}
+}
+async function pollPrice(){
+  try {
+    const j = await getJSON(`https://api.dexscreener.com/latest/dex/tokens/${IMD}`);
+    const pairs = (j.pairs || []).filter(p => p.baseToken?.address?.toLowerCase() === IMD && p.priceUsd);
+    pairs.sort((a,b) => (b.liquidity?.usd||0) - (a.liquidity?.usd||0));
+    if (pairs[0]){ S.imdUsd = Number(pairs[0].priceUsd); $('#c-imd').textContent = '$' + S.imdUsd.toFixed(4); }
+  } catch {}
+}
+function updAge(){
+  $('#r-upd').textContent = S.swarmAt ? `updated ${Math.max(0, Math.round((Date.now()-S.swarmAt)/1000))}s ago` : 'no data yet';
+}
+setInterval(updAge, 1000);
+
+/* ============================== terminal ============================== */
+const HELP = 'commands: go <hook|oracle|hive|vault|furnace|ledger|loyalty> · mode <calm|panic|buyback|milestone> · stats · home · clear';
+$('#cmd').addEventListener('submit', e => {
+  e.preventDefault();
+  const inp = $('#cmd-in'); const [c, a] = inp.value.trim().toLowerCase().split(/\s+/); inp.value = '';
+  if (!c) return;
+  if (c === 'help') sysLine(HELP);
+  else if (c === 'go') sysLine(openDistrict(a) ? `flying to ${DISTRICTS[a].name}` : `unknown district "${a||''}"`);
+  else if (c === 'mode') sysLine(setMode(a) ? `tonight: ${a} (simulation)` : `unknown mode "${a||''}"`);
+  else if (c === 'stats'){ const h = S.swarm?.health; sysLine(h ? `${fmt(h.agentsOnline)} online · ${fmt(h.workingNow)} working · ${fmt(h.jobsDoneLastDay)} jobs/24h` : 'no data'); }
+  else if (c === 'home'){ closeDrawer(); flyTo(HOME.pos.clone(), HOME.target.clone()); sysLine('back on the rooftops'); }
+  else if (c === 'clear'){ feed.innerHTML = ''; }
+  else sysLine(`unknown command "${c}". ${HELP}`);
+});
+
+/* ======================= sound: the swarm, made audible ======================= */
+let actx = null, master = null;
+function startAudio(){
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  master = actx.createGain(); master.gain.value = 0; master.connect(actx.destination);
+  const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 520; lp.Q.value = 6; lp.connect(master);
+  [55, 82.4, 110.3].forEach((f, i) => { const o = actx.createOscillator(); o.type = i ? 'sawtooth' : 'sine'; o.frequency.value = f; o.detune.value = (i-1)*7;
+    const g = actx.createGain(); g.gain.value = i ? 0.05 : 0.2; o.connect(g); g.connect(lp); o.start(); });
+  const lfo = actx.createOscillator(); lfo.frequency.value = 0.06; const lg = actx.createGain(); lg.gain.value = 260; lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
+  master.gain.linearRampToValueAtTime(0.5, actx.currentTime + 2);
+}
+function ping(freq=600, vol=0.08){
+  if (!actx || actx.state !== 'running' || !master || master.gain.value < 0.01) return;
+  const o = actx.createOscillator(), g = actx.createGain(); o.type = 'triangle'; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + 1.2);
+  o.connect(g); g.connect(master); o.start(); o.stop(actx.currentTime + 1.3);
+}
+$('#b-listen').addEventListener('click', e => {
+  const b = e.currentTarget, on = b.getAttribute('aria-pressed') !== 'true';
+  b.setAttribute('aria-pressed', String(on));
+  b.querySelector('span').textContent = on ? 'The night is listening' : 'Listen to the night';
+  if (on){ if (!actx) startAudio(); else { actx.resume(); master.gain.linearRampToValueAtTime(0.5, actx.currentTime + 1); } }
+  else if (actx){ master.gain.linearRampToValueAtTime(0, actx.currentTime + 0.6); }
+});
+$('#b-mode').addEventListener('click', () => $('#mode').classList.toggle('show'));
+const mq = matchMedia('(max-width:760px)'); const syncMq = () => { $('#b-mode').style.display = mq.matches ? '' : 'none'; }; mq.addEventListener('change', syncMq); syncMq();
+
+/* ============================== ledger pulse ============================== */
+let ledgerPulse = 0; function pulseLedger(){ ledgerPulse = 1; ping(330, 0.04); }
+
+/* ============================== loop ============================== */
+const clock = new THREE.Clock(); let T = 0;
+const ease = t => t<.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+function frame(){
+  const dt = Math.min(clock.getDelta(), 0.05); T += dt;
+  const sp = reduced ? 0.25 : 1;
+
+  if (fly){
+    fly.t += dt / fly.dur; const k = ease(Math.min(fly.t, 1));
+    camera.position.lerpVectors(fly.p0, fly.p1, k); controls.target.lerpVectors(fly.t0, fly.t1, k);
+    if (fly.t >= 1) fly = null;
+  }
+  controls.update();
+
+  // rain
+  const rp = rainGeo.attributes.position.array, fall = (mode==='panic' ? 70 : 48) * dt * sp;
+  for (let i=0; i<RAIN; i++){ const j = i*6; rp[j+1] -= fall; rp[j+4] -= fall; if (rp[j+4] < 0){ rp[j+1] += 110; rp[j+4] += 110; } }
+  rainGeo.attributes.position.needsUpdate = true;
+
+  // traffic
+  for (let i=0; i<CARS; i++){ const c = cars[i]; c.t += c.v*dt*sp; if (c.t > 115) c.t = -115; if (c.t < -115) c.t = 115;
+    carPos[i*3] = c.alongX ? c.t : c.lane; carPos[i*3+1] = 0.5; carPos[i*3+2] = c.alongX ? c.lane : c.t; }
+  carGeo.attributes.position.needsUpdate = true;
+
+  // agents
+  for (let i=0; i<agentsShown; i++){
+    const a = agentPaths[i]; a.p = (a.p + a.s*dt*sp) % 1; const p = a.p;
+    agentPos[i*3]   = a.ax + (a.bx-a.ax)*p + Math.sin(p*Math.PI)*a.w;
+    agentPos[i*3+1] = 6 + Math.sin(p*Math.PI)*a.h;
+    agentPos[i*3+2] = a.az + (a.bz-a.az)*p + Math.cos(p*Math.PI*2)*a.w*0.4;
+  }
+  if (agentsShown) agentGeo.attributes.position.needsUpdate = true;
+
+  // districts
+  const H = DISTRICTS.hook;
+  H.ringMesh.rotation.z += dt*0.3*sp; H.ring2.rotation.z -= dt*0.45*sp;
+  const panicPulse = mode==='panic' ? 0.6 + 0.4*Math.sin(T*6) : 0.95;
+  heroEdges.hook.opacity = panicPulse;
+  DISTRICTS.hive.ringMesh.rotation.z += dt*0.2*sp;
+  DISTRICTS.oracle.tip.scale.setScalar(1 + 0.35*Math.sin(T*2.4));
+  DISTRICTS.ledger.shader.uniforms.time.value = T*sp;
+  ledgerPulse = Math.max(0, ledgerPulse - dt*0.8);
+  DISTRICTS.ledger.shader.uniforms.tint.value.setRGB(0.75 + ledgerPulse*0.6, 0.8 + ledgerPulse*0.2, 0.95 - ledgerPulse*0.5);
+
+  // buyback embers
+  embPts.visible = mode === 'buyback';
+  DISTRICTS.furnace.stackMesh.material.emissiveIntensity = mode === 'buyback' ? 1.6 + Math.sin(T*8)*0.3 : 0.25;
+  if (embPts.visible){
+    for (let i=0; i<EMB; i++){ const e = embers[i]; e.y += e.v*dt; if (e.y > 40){ e.y = 0; e.x = (Math.random()-0.5)*3; e.z = (Math.random()-0.5)*3; }
+      embPos[i*3] = e.x + Math.sin(T+e.y*0.3)*e.y*0.08; embPos[i*3+1] = e.y; embPos[i*3+2] = e.z; }
+    embGeo.attributes.position.needsUpdate = true;
+  }
+  beam.material.opacity += ((mode==='milestone' ? 0.22 : 0) - beam.material.opacity) * Math.min(1, dt*3);
+
+  // searchlights + low fog
+  for (const sw of sweepers){ sw.m.rotation.z = Math.sin(T*0.25*sp + sw.ph)*0.45; sw.m.rotation.x = Math.cos(T*0.19*sp + sw.ph)*0.3; }
+  lowFogMat.map.offset.x += dt*0.006*sp;
+  if (DISTRICTS.vault.rose) DISTRICTS.vault.rose.material.color.copy(new THREE.Color('#5df2a3').multiplyScalar(mode==='milestone' ? 3 + Math.sin(T*3) : 1.4));
+  // sky
+  cloudTex.offset.x += dt*0.004*sp; cloudTex.offset.y += dt*0.0015*sp;
+  signalFlare = Math.max(0, signalFlare - dt*0.5);
+  beamMat.uniforms.strength.value = (mode==='panic' ? 0.24 + 0.1*Math.sin(T*5) : 0.13) + signalFlare*0.3;
+  sigilMat.opacity = 0.42 + signalFlare*0.35 + (mode==='panic' ? 0.15*Math.sin(T*5) : 0);
+  if (!reduced){
+    nextBolt -= dt;
+    if (nextBolt <= 0){ lightning = 1; nextBolt = (mode==='panic' ? 3 : 9) + Math.random()*12; }
+    lightning = Math.max(0, lightning - dt*3.2);
+    const flick = lightning > 0.05 ? lightning*(0.6 + 0.4*Math.sin(T*90)) : 0;
+    hemi.intensity = 0.7 + flick*2.4; cloudMat.color.setRGB(0.15 + flick*0.7, 0.17 + flick*0.7, 0.24 + flick*0.7);
+  }
+
+  composer.render();
+  placeLabels();
+  requestAnimationFrame(frame);
+}
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight; camera.fov = portrait() ? 64 : 52; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+});
+
+/* ============================== boot ============================== */
+setMode('calm');
+requestAnimationFrame(frame);
+if (!reduced){ camera.position.copy(INTRO.pos); controls.target.copy(INTRO.target); setTimeout(() => flyTo(HOME.pos.clone(), HOME.target.clone(), 5.5), 700); }
+setTimeout(() => $('#boot').classList.add('gone'), 400);
+pollSwarm(true); pollBlock(); pollPrice();
+setInterval(pollSwarm, 20000); setInterval(pollBlock, 12000); setInterval(pollPrice, 60000);
+</script>
+
+</body>
+</html>
