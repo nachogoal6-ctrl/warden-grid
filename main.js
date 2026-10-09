@@ -79,7 +79,7 @@ const introPath = new THREE.CatmullRomCurve3([
   new THREE.Vector3(10, 66, 18), HOME.pos.clone(),
 ], false, 'centripetal');
 let intro = null, fly = null;
-function startIntro() { intro = { t: 0, dur: 13 }; controls.enabled = false; shared.reveal.value = 0; }
+function startIntro() { intro = { t: 0, dur: 13, t0: performance.now() }; controls.enabled = false; shared.reveal.value = 0; }
 function endIntro() {
   if (!intro) return; intro = null; controls.enabled = true; shared.reveal.value = 999;
   camera.position.copy(HOME.pos); controls.target.copy(HOME.target); controls.autoRotate = !reduced; $('#skip').hidden = true;
@@ -246,7 +246,7 @@ function frame() {
   shared.time.value = T * sp;
 
   if (intro) {
-    intro.t += dt / intro.dur; const k = Math.min(intro.t, 1), e = ease(k);
+    intro.t = (performance.now() - intro.t0) / 1000 / intro.dur; const k = Math.min(intro.t, 1), e = ease(k);
     camera.position.copy(introPath.getPoint(e));
     const ahead = introPath.getPoint(Math.min(e + 0.04, 1));
     controls.target.copy(ahead.lerp(HOME.target, THREE.MathUtils.smoothstep(e, 0.62, 1)));
@@ -287,3 +287,4 @@ requestAnimationFrame(frame);
 }
 if (!reduced) { startIntro(); $('#skip').hidden = false; } else { controls.autoRotate = false; }
 data.start();
+window.__wg = { camera, controls, scene, endIntro, setMode, openDistrict };
