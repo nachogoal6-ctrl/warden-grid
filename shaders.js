@@ -102,7 +102,7 @@ const CODE_FS = /* glsl */`
       float idx = floor(h2(vec2(cx, row + floor(time*(0.5+h(cx+3.)*2.)))) * 16.);
       vec2 g = fract(vec2(cell.x, y)); g = (g - .5)*1.15 + .5;
       float glyph = texture2D(atlas, glyphUV(idx, g)).r;
-      float trail = fract(-y*0.045 + h(cx+7.));
+      float trail = clamp(fract(-y*0.045 + h(cx+7.)), 0., 1.);
       float head = smoothstep(0.985, 1.0, trail);
       float b = glyph * (0.04 + pow(trail, 5.)*1.25) * level * (1. - solid*0.45);
       vec3 c = mix(tint, vec3(0.75, 1.0, 0.8), head*0.85);
@@ -111,7 +111,7 @@ const CODE_FS = /* glsl */`
       col *= mix(0.45, 1.0, smoothstep(0.0, 0.35, vUv.y));
       float key = max(dot(n, normalize(vec3(-0.5, 0.25, 0.65))), 0.);
       col *= mix(0.82 + 0.3*key, 0.45 + 0.9*key, solid);                // moonlit side vs shadow side
-      col += tint * pow(1. - abs(dot(n, V)), 4.) * 0.05 * level;
+      col += tint * pow(clamp(1. - abs(dot(n, V)), 0., 1.), 4.) * 0.05 * level;
     } else {
       // roofs: plates, vents and slow beacons, in world space
       vec2 rp = vWorld.xz * 0.5;
@@ -123,16 +123,16 @@ const CODE_FS = /* glsl */`
       float vent = step(0.93, h2(rc)) * step(max(rf.x, rf.y), 0.3);
       col += tint * vent * (0.25 + 0.25*sin(time*2. + h2(rc)*30.)) * level;
       float bea = step(0.985, h2(rc*1.7 + 3.)) * step(length(fract(rp) - 0.5), 0.14);
-      col += vec3(0.75, 1., 0.8) * bea * pow(0.5 + 0.5*sin(time*1.3 + h2(rc)*20.), 6.) * 1.6;
+      col += vec3(0.75, 1., 0.8) * bea * pow(max(0.5 + 0.5*sin(time*1.3 + h2(rc)*20.), 0.), 6.) * 1.6;
     }
     // block wave: a ring of light sweeping across the city
     if (wave > 0.){
       float d = length(vWorld.xz - waveOrigin);
-      float ring = exp(-pow((d - wave)*0.35, 2.));
+      float ring = exp(-(((d - wave)*0.35)*((d - wave)*0.35)));
       col += tint * ring * 1.4;
     }
     // compile scanline at the reveal front
-    float front = exp(-pow((vWorld.y - reveal)*1.2, 2.));
+    float front = exp(-(((vWorld.y - reveal)*1.2)*((vWorld.y - reveal)*1.2)));
     col += vec3(0.7, 1.0, 0.8) * front * 2.0 * step(reveal, 900.);
     col = mix(col, vec3(dot(col, vec3(.3,.6,.1))*2.4 + 0.03, col.g*0.1, col.g*0.14), alarm);
     float fo = 1. - exp(-fogDensity*fogDensity*vDepth*vDepth);
@@ -231,7 +231,7 @@ export function groundMaterial() {
         col = mix(col, col*0.4, pud);
         col += tint * pud * (streak*colmask*0.5*ripple + 0.012);
         // block wave travels over the ground too
-        if (wave > 0.){ float d = length(p - waveOrigin); col += tint * exp(-pow((d - wave)*0.3, 2.)) * (0.18 + pud*0.6); }
+        if (wave > 0.){ float d = length(p - waveOrigin); col += tint * exp(-(((d - wave)*0.3)*((d - wave)*0.3))) * (0.18 + pud*0.6); }
         col = mix(col, vec3(dot(col, vec3(.3,.6,.1))*2.2, col.g*0.1, col.g*0.14), alarm);
         float fo = 1. - exp(-fogDensity*fogDensity*vDepth*vDepth);
         gl_FragColor = vec4(mix(col, fogColor, clamp(fo, 0., 1.)), 1.);

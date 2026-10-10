@@ -74,6 +74,13 @@ const dpos = (k, y) => V(DISTRICTS[k].pos[0], y ?? DISTRICTS[k].focus ?? 10, DIS
 /* ------------------------------ post-processing ------------------------------ */
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
+// guard: one NaN or Inf pixel would be smeared by bloom into a black block, so clean them before bloom
+composer.addPass(new ShaderPass({ uniforms: { tDiffuse: { value: null } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+    void main(){ vec4 c = texture2D(tDiffuse, vUv); bvec4 bad = notEqual(c, c);
+      if (any(bad) || any(greaterThan(abs(c), vec4(6e4)))) c = vec4(0.,0.,0.,1.);
+      gl_FragColor = vec4(min(c.rgb, vec3(24.)), c.a); }` }));
 const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight).multiplyScalar(LOW ? 0.5 : 1), 0.62, 0.42, 0.34);
 composer.addPass(bloom);
 const finalPass = new ShaderPass({

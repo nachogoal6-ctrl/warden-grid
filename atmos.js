@@ -14,7 +14,7 @@ const SKY_FS = /* glsl */`
     float y = vDir.y;
     vec3 top = vec3(0.002, 0.008, 0.004), mid = vec3(0.006, 0.03, 0.016), hor = vec3(0.02, 0.11, 0.055);
     vec3 c = mix(hor, mid, smoothstep(0.0, 0.18, y)); c = mix(c, top, smoothstep(0.18, 0.7, y));
-    c += hor * 0.9 * exp(-pow(y * 9., 2.));                                   // bright band on the horizon
+    c += hor * 0.9 * exp(-((y * 9.)*(y * 9.)));                                   // bright band on the horizon
     // slow aurora curtains of light high above the city
     float a = atan(vDir.z, vDir.x);
     float cur = vn(vec2(a * 3.0, time * 0.05)) * vn(vec2(a * 9.0 + time * 0.03, y * 3.));
@@ -67,10 +67,10 @@ export function buildAtmos(scene, { low = false } = {}) {
   /* light beams: one soft column of light above each program */
   const beamMat = new THREE.ShaderMaterial({
     uniforms: { time: shared.time, alarm: shared.alarm, color: { value: new THREE.Color(0x3dff8f) } },
-    vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv = uv; vN = normalize(normalMatrix * normal);
-      vec4 mv = modelViewMatrix * vec4(position, 1.); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+    vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv = uv; vN = normalMatrix * normal; vN = vN / max(length(vN), 1e-4);
+      vec4 mv = modelViewMatrix * vec4(position, 1.); vV = -mv.xyz / max(length(mv.xyz), 1e-4); gl_Position = projectionMatrix * mv; }`,
     fragmentShader: `uniform float time; uniform float alarm; uniform vec3 color; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
-      void main(){ float edge = pow(1. - abs(dot(vN, vV)), 1.5); float fall = pow(1. - vUv.y, 1.6);
+      void main(){ float edge = pow(clamp(1. - abs(dot(normalize(vN + 1e-6), normalize(vV + 1e-6))), 0., 1.), 1.5); float fall = pow(clamp(1. - vUv.y, 0., 1.), 1.6);
         float ripple = 0.75 + 0.25 * sin(vUv.y * 40. - time * 3.);
         vec3 c = mix(color, vec3(1., 0.3, 0.35), alarm * 0.8);
         gl_FragColor = vec4(c * (0.25 + edge) * fall * ripple * 0.32, 1.); }`,
@@ -103,8 +103,8 @@ export function buildAtmos(scene, { low = false } = {}) {
         void main(){ vec3 p = position; p.y = mod(p.y + time * (0.6 + seed * 1.8), 95.);
           p.x += sin(time * 0.3 + seed * 30.) * 2.5; p.z += cos(time * 0.25 + seed * 17.) * 2.5;
           vec4 mv = modelViewMatrix * vec4(p, 1.); vD = -mv.z;
-          vA = (0.35 + 0.65 * pow(0.5 + 0.5 * sin(time * (1. + seed * 3.) + seed * 50.), 3.)) * smoothstep(0., 8., p.y) * (1. - smoothstep(70., 95., p.y));
-          gl_PointSize = clamp((0.6 + seed * 1.4) * pixel * 120. / vD, 1., 6.); gl_Position = projectionMatrix * mv; }`,
+          vA = (0.35 + 0.65 * pow(clamp(0.5 + 0.5 * sin(time * (1. + seed * 3.) + seed * 50.), 0., 1.), 3.)) * smoothstep(0., 8., p.y) * (1. - smoothstep(70., 95., p.y));
+          gl_PointSize = clamp((0.6 + seed * 1.4) * pixel * 120. / max(vD, 0.1), 1., 6.); gl_Position = projectionMatrix * mv; }`,
       fragmentShader: `uniform float alarm; varying float vA; varying float vD;
         void main(){ vec2 c = gl_PointCoord - .5; float d = length(c); if (d > .5) discard;
           float fall = exp(-vD * 0.006);
@@ -149,9 +149,9 @@ export const REFLECT_SHADER = {
       vec2 pl = p / 4.; vec2 pf = abs(fract(pl) - 0.5);
       vec3 base = vec3(0.004, 0.016, 0.009) * (0.75 + 0.5*h2(floor(pl))) * (0.85 + 0.3*vn(p*3.1));
       base += vec3(0.02, 0.09, 0.05) * 0.14 * step(0.485, max(pf.x, pf.y));
-      vec3 V = normalize(cameraPosition - vWorld); float fres = 0.55 + 0.45 * pow(1. - max(V.y, 0.), 3.);
+      vec3 V = normalize(cameraPosition - vWorld + 1e-5); float fres = 0.55 + 0.45 * pow(clamp(1. - V.y, 0., 1.), 3.);
       vec3 col = base * (1. - pud * 0.6) + refl * mix(0.8, 1.8, pud) * fres;
-      if (wave > 0.){ float d = length(p - waveOrigin); col += vec3(0.24, 1., 0.56) * exp(-pow((d - wave)*0.3, 2.)) * (0.18 + pud*0.6); }
+      if (wave > 0.){ float d = length(p - waveOrigin); col += vec3(0.24, 1., 0.56) * exp(-(((d - wave)*0.3)*((d - wave)*0.3))) * (0.18 + pud*0.6); }
       col = mix(col, vec3(dot(col, vec3(.3,.6,.1))*2.2, col.g*0.1, col.g*0.14), alarm * 0.6);
       float fo = 1. - exp(-fogDensity*fogDensity*vDepth*vDepth);
       gl_FragColor = vec4(mix(col, fogColor, clamp(fo, 0., 1.)), 1.);
