@@ -22,9 +22,9 @@ export function makeContent(ctx) {
       <p class="lede">Every $WARD trade passes through the Gate. It is a Uniswap v4 hook: a contract that runs before and after each swap and enforces the rules that protect holders.</p>
       <div><p class="sect">Token</p><div class="grid3">${na('Price')}${na('Swaps')}${na('Fees collected')}</div></div>
       <div><p class="sect">What the hook will do</p><ul class="rows">
-        <li><span>Fee that reacts to panic</span><span class="hot">planned</span></li>
-        <li><span>Buyback and burn at the right time</span><span class="hot">planned</span></li>
-        <li><span>Team unlocks tied to milestones</span><span class="hot">planned</span></li>
+        <li><span>Fee that reacts to panic</span><span class="hot">built · not deployed</span></li>
+        <li><span>Buyback and burn at the right time</span><span class="hot">built · not deployed</span></li>
+        <li><span>Team unlocks tied to milestones</span><span class="hot">built · not deployed</span></li>
         <li><span>Rewards for holders who stay</span><span class="hot">planned</span></li></ul></div>
       <div><p class="sect">Rogue programs</p><div class="rogues">
         <div class="rogue"><b>sniper.exe</b><span>first block</span><p>Buys the first seconds of a launch and dumps on everyone after. <em>Blocked by the launch toll.</em></p></div>
@@ -32,7 +32,7 @@ export function makeContent(ctx) {
         <div class="rogue"><b>stampede.exe</b><span>panic</span><p>One big sell turns into a run on the pool. <em>Throttled by the breach toll.</em></p></div>
         <div class="rogue"><b>tourist.exe</b><span>flipper</span><p>In for a day, out with the rewards. <em>Outpaid by holders who stay.</em></p></div>
       </div></div>
-      <p class="src">Contract not deployed. Address and audit will be listed here at launch.</p>`,
+      <p class="src">Contracts written and tested (WardenHook, WardenOracle, MilestoneVault, BuybackBurner). Not deployed and not audited yet: addresses and audit will be listed here at launch.</p>`,
     oracle: () => { const h = S.swarm?.health;
       return `<p class="lore">the grid can't see outside itself. so it asks.</p>
       <p class="lede">The hook can't read the outside world, so it asks the IMD oracle. A panel of independent agents answers, and only an answer they agree on gets signed and handed to the contract. The mast flares when the swarm finishes oracle work.</p>
