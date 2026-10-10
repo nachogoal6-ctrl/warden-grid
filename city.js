@@ -29,7 +29,7 @@ export function buildCity(scene) {
   const grid = new THREE.GridHelper(300, 75, 0x0f6b38, 0x06301a);
   grid.position.y = 0.03; grid.material.transparent = true; grid.material.opacity = 0.5; scene.add(grid);
 
-  const skyMat = codeMaterial(G, { level: 0.5, cells: 1, base: 0x010402, fog: false, speed: 0.8, windows: 0 });
+  const skyMat = codeMaterial(G, { level: 0.5, cells: 1, base: 0x010402, fog: false, speed: 0.8, windows: 0, solid: 0 });
   skyMat.side = THREE.BackSide;
   {
     const g = new THREE.CylinderGeometry(340, 340, 280, 96, 1, true);
@@ -187,10 +187,10 @@ export function buildCity(scene) {
   // 0x06 THE LEDGER — a monolith of falling code with pages orbiting it
   {
     const k = 'ledger', d = DISTRICTS[k], grp = group(k), em = mkEdge(k);
-    const mat = codeMaterial(d.color, { level: 2.6, cells: 3, base: 0x031208, windows: 0.4 });
+    const mat = codeMaterial(d.color, { level: 2.6, cells: 3, base: 0x031208, windows: 0.4, solid: 0.5 });
     add(grp, box(10, 64, 10, 1.2), mat, em, 0, 32, 0);
     const pages = new THREE.Group(); grp.add(pages);
-    const pageMat = codeMaterial(d.color, { level: 2.2, cells: 1.5, base: 0x041a0c, windows: 0 });
+    const pageMat = codeMaterial(d.color, { level: 2.2, cells: 1.5, base: 0x041a0c, windows: 0, solid: 0 });
     pageMat.side = THREE.DoubleSide;
     for (let i = 0; i < 14; i++) {
       const p = new THREE.Mesh(codeUV(new THREE.BoxGeometry(3.2, 4.2, 0.05), 0.6), pageMat);
@@ -243,7 +243,10 @@ export function buildCity(scene) {
       if (top > 18 && rnd() < 0.35) { const ah = 3 + rnd() * 8; const a = new THREE.CylinderGeometry(0.08, 0.14, ah, 4); a.translate(ox, top + ah / 2, oz); antennas.push(a); }
       roofs.push({ x: ox, z: oz, y: top });
     }
-    scene.add(new THREE.Mesh(mergeGeometries(geos.map(g => g.index ? g.toNonIndexed() : g)), codeMaterial(G, { level: 1, cells: 2 })));
+    const mass = mergeGeometries(geos.map(g => g.index ? g.toNonIndexed() : g));
+    scene.add(new THREE.Mesh(mass, codeMaterial(G, { level: 0.8, cells: 2, base: 0x03100a })));
+    // silhouette lines: every block's outline, faint, so the skyline reads as solid volumes
+    scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(mass, 30), glowMaterial(G, { intensity: 0.32 })));
     if (antennas.length) scene.add(new THREE.Mesh(mergeGeometries(antennas), glowMaterial(G, { intensity: 1.6 })));
     // sky bridges between nearby tall roofs
     for (let i = 0; i < roofs.length; i++) {

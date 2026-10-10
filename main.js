@@ -6,7 +6,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { shared, FOG, G, ALARM, MINT } from './shaders.js';
+import { shared, FOG, FOG_DENSITY, G, ALARM, MINT } from './shaders.js';
 import { buildCity, DISTRICTS } from './city.js';
 import { buildAgents, MAX_AGENTS } from './agents.js';
 import { buildSwarm } from './swarm.js';
@@ -38,7 +38,7 @@ renderer.toneMappingExposure = 1.15;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x010703);
-scene.fog = new THREE.FogExp2(FOG, 0.0098);
+scene.fog = new THREE.FogExp2(FOG, FOG_DENSITY);
 scene.add(new THREE.HemisphereLight(0x1d5a35, 0x010402, 0.6));
 const key = new THREE.DirectionalLight(0x3dff8f, 0.45); key.position.set(-30, 70, 40); scene.add(key);
 
@@ -66,7 +66,7 @@ const dpos = (k, y) => V(DISTRICTS[k].pos[0], y ?? DISTRICTS[k].focus ?? 10, DIS
 /* ------------------------------ post-processing ------------------------------ */
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight).multiplyScalar(LOW ? 0.5 : 1), 0.8, 0.45, 0.22);
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight).multiplyScalar(LOW ? 0.5 : 1), 0.62, 0.42, 0.34);
 composer.addPass(bloom);
 const finalPass = new ShaderPass({
   uniforms: { tDiffuse: { value: null }, time: shared.time, alarm: shared.alarm, glitch: { value: 0 }, res: { value: new THREE.Vector2(innerWidth, innerHeight) } },
@@ -78,10 +78,10 @@ const finalPass = new ShaderPass({
       vec2 uv = vUv;
       float g = glitch + alarm*0.35;
       if (g > 0.){ float band = step(0.985 - g*0.04, h(vec2(floor(uv.y*60.), floor(time*12.)))); uv.x += band*(h(vec2(time, uv.y))-.5)*0.08*g; }
-      vec2 dir = (uv - .5); float ca = 0.0012 + g*0.006;
+      vec2 dir = (uv - .5); float ca = 0.0005 + g*0.006;
       vec3 c = vec3(texture2D(tDiffuse, uv + dir*ca).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - dir*ca).b);
-      c *= 0.94 + 0.06*sin(uv.y*res.y*1.4);                     // faint scanlines
-      c += (h(uv*res + time) - .5) * 0.02;                      // grain
+      c *= 0.975 + 0.025*sin(uv.y*res.y*1.4);                   // faint scanlines
+      c += (h(uv*res + time) - .5) * 0.008;                     // grain
       c *= smoothstep(1.15, 0.35, length(dir*vec2(1.1, 1.0)));   // vignette
       gl_FragColor = vec4(c, 1.);
     }`,

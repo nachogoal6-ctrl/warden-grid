@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 
 export const FOG = new THREE.Color(0x010803);
-export const FOG_DENSITY = 0.0098;
+export const FOG_DENSITY = 0.0084;
 export const G = '#3dff8f', HOT = '#b4ffcb', MINT = '#21e070', ALARM = '#ff4f5e';
 
 export const shared = {
@@ -59,7 +59,7 @@ const CODE_FS = /* glsl */`
   uniform sampler2D atlas; uniform float time; uniform vec3 tint; uniform vec3 base; uniform float level;
   uniform float cells; uniform vec3 fogColor; uniform float fogDensity; uniform float alarm;
   uniform float reveal; uniform float wave; uniform vec2 waveOrigin; uniform float speed;
-  uniform float gset; uniform float windows;
+  uniform float gset; uniform float windows; uniform float solid;
   varying vec2 vUv; varying float vDepth; varying vec3 vWorld; varying vec3 vNormalW;
   float h(float n){ return fract(sin(n*127.1)*43758.5453); }
   float h2(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1)))*43758.5453); }
@@ -74,19 +74,25 @@ const CODE_FS = /* glsl */`
     vec3 V = normalize(cameraPosition - vWorld);
     bool roof = vUv.x < 0.0015 && vUv.y > 0.998;
     if (!roof){
-      // ---- structure: floors, piers and windows (in facade units) ----
-      vec2 fu = vUv * vec2(cells*2., cells*2.6);           // one cell = one window bay
+      // ---- solid facade: tone per building, floor slabs, piers, glass with lit and dark windows ----
+      float bid = h2(floor(vWorld.xz / 6.5) + 0.37);                     // stable per-building tone
+      vec3 body = base * (1.15 + bid * 0.9) + vec3(0.004, 0.011, 0.007) * solid;
+      col = mix(col, body, solid);
+      vec2 fu = vUv * vec2(cells*2., cells*2.6);                          // one cell = one window bay
       vec2 bay = floor(fu), f = fract(fu);
-      float mull = max(step(0.86, f.y), step(0.9, f.x));    // dark mullions / floor slabs
-      float ledge = smoothstep(0.86, 0.875, f.y) - smoothstep(0.885, 0.9, f.y);
-      float pier = step(0.0, -mod(bay.x, 4.)) * step(0.9, 1. - abs(f.x - 0.5)*2.);   // every 4th bay is a pier
-      float lit = step(0.72, h2(bay + floor(vWorld.xz*0.07)*13.));
-      float flick = 0.65 + 0.35*sin(time*(0.4 + h2(bay)*1.7) + h2(bay*3.1)*6.28);
-      vec2 wq = abs(f - vec2(0.45, 0.43));
-      float pane = (1. - mull) * smoothstep(0.46, 0.38, max(wq.x, wq.y));
-      col *= 1. - mull*0.55;
-      col += tint * windows * (ledge*0.04 + pane*lit*flick*0.035 + pier*0.008) * level;
-      col += tint * windows * pane * 0.003 * level;
+      float slab = smoothstep(0.80, 0.84, f.y) * (1. - smoothstep(0.96, 1.0, f.y));
+      float mullion = smoothstep(0.86, 0.9, f.x);
+      float pier = step(0.0, -mod(bay.x, 4.)) * smoothstep(0.75, 0.9, 1. - abs(f.x - 0.5)*2.);
+      vec2 wq = abs(f - vec2(0.43, 0.40));
+      float pane = (1. - slab) * (1. - mullion) * smoothstep(0.43, 0.36, max(wq.x, wq.y));
+      float lit = step(0.70, h2(bay + floor(vWorld.xz*0.07)*13.));
+      float flick = 0.7 + 0.3*sin(time*(0.4 + h2(bay)*1.7) + h2(bay*3.1)*6.28);
+      float glass = pane * (0.35 + 0.65 * smoothstep(0.0, 1.0, f.y));     // glass gradient: darker at the sill
+      col *= 1. - glass * 0.55 * solid;                                    // dark glass reads as depth
+      col += vec3(0.035, 0.08, 0.055) * slab * solid;                       // concrete slab edges catch the light
+      col += vec3(0.03, 0.07, 0.045) * pier * solid;
+      col += mix(tint, vec3(0.8, 1.0, 0.85), 0.35) * pane * lit * flick * 0.11 * windows;
+      col += tint * windows * (1. - solid) * (slab * 0.04 + pane * lit * flick * 0.035);
       // ---- falling code on top ----
       vec2 cell = vUv * vec2(cells, cells*1.6);
       float cx = floor(cell.x);
@@ -98,18 +104,20 @@ const CODE_FS = /* glsl */`
       float glyph = texture2D(atlas, glyphUV(idx, g)).r;
       float trail = fract(-y*0.045 + h(cx+7.));
       float head = smoothstep(0.985, 1.0, trail);
-      float b = glyph * (0.05 + pow(trail, 5.)*1.25) * level;
+      float b = glyph * (0.04 + pow(trail, 5.)*1.25) * level * (1. - solid*0.45);
       vec3 c = mix(tint, vec3(0.75, 1.0, 0.8), head*0.85);
       col += c * b * (1.0 + head*2.5);
       // ---- shading: street-level occlusion, moonlit side, rim ----
       col *= mix(0.45, 1.0, smoothstep(0.0, 0.35, vUv.y));
-      col *= 0.82 + 0.3*max(dot(n, normalize(vec3(-0.5, 0.2, 0.6))), 0.);
+      float key = max(dot(n, normalize(vec3(-0.5, 0.25, 0.65))), 0.);
+      col *= mix(0.82 + 0.3*key, 0.45 + 0.9*key, solid);                // moonlit side vs shadow side
       col += tint * pow(1. - abs(dot(n, V)), 4.) * 0.05 * level;
     } else {
       // roofs: plates, vents and slow beacons, in world space
       vec2 rp = vWorld.xz * 0.5;
       vec2 rf = abs(fract(rp) - 0.5);
-      col += tint * 0.02 * level;
+      col = mix(col, base * 2.4 + vec3(0.012, 0.03, 0.02), solid);
+      col += tint * 0.02 * level * (1. - solid*0.5);
       col += tint * 0.03 * step(0.46, max(rf.x, rf.y)) * level;
       vec2 rc = floor(rp);
       float vent = step(0.93, h2(rc)) * step(max(rf.x, rf.y), 0.3);
@@ -132,14 +140,14 @@ const CODE_FS = /* glsl */`
   }`;
 
 const mats = [];
-export function codeMaterial(tint = G, { level = 1, cells = 2, base = 0x020a05, fog = true, speed = 1, gset = 0, windows = 1 } = {}) {
+export function codeMaterial(tint = G, { level = 1, cells = 2, base = 0x020a05, fog = true, speed = 1, gset = 0, windows = 1, solid = 1 } = {}) {
   const m = new THREE.ShaderMaterial({
     uniforms: {
       atlas: { value: atlas }, time: shared.time, reveal: shared.reveal, alarm: shared.alarm,
       wave: shared.wave, waveOrigin: shared.waveOrigin,
       tint: { value: new THREE.Color(tint) }, base: { value: new THREE.Color(base) },
       level: { value: level }, cells: { value: cells }, speed: { value: speed },
-      gset: { value: gset }, windows: { value: windows },
+      gset: { value: gset }, windows: { value: windows }, solid: { value: solid },
       fogColor: { value: FOG }, fogDensity: { value: fog ? FOG_DENSITY : 0 },
     },
     vertexShader: CODE_VS, fragmentShader: CODE_FS,

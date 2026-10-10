@@ -402,3 +402,23 @@ table.rd{width:100%;border-collapse:collapse;font-size:12px}
 .lv-acts form{display:flex;gap:6px;margin:0} .lv-acts .ap-stop{padding:8px 12px;font-size:11.5px}
 .lv-lim{display:flex!important;flex-wrap:wrap;gap:6px;align-items:center} .lv-lim input{width:110px}
 @media (max-width:900px){ .lv-grid{grid-template-columns:1fr} }
+.lv-deploy{width:100%;margin:4px 0 12px}
+
+/* ---------------- panel polish: corner brackets, sharper glass ---------------- */
+:root{--glass:rgba(2,9,5,.88);--glass-hi:rgba(2,11,6,.95)}
+.panel,.cx-win,.wd-btn,.wd-say{background-image:linear-gradient(180deg,rgba(61,255,143,.035),transparent 40%)}
+.panel::before,.cx-win::after{content:"";position:absolute;inset:-1px;pointer-events:none;
+  background:
+    linear-gradient(var(--code),var(--code)) top left/12px 1px no-repeat,
+    linear-gradient(var(--code),var(--code)) top left/1px 12px no-repeat,
+    linear-gradient(var(--code),var(--code)) top right/12px 1px no-repeat,
+    linear-gradient(var(--code),var(--code)) top right/1px 12px no-repeat,
+    linear-gradient(var(--code),var(--code)) bottom left/12px 1px no-repeat,
+    linear-gradient(var(--code),var(--code)) bottom left/1px 12px no-repeat,
+    linear-gradient(var(--code),var(--code)) bottom right/12px 1px no-repeat,
+    linear-gradient(var(--code),var(--code)) bottom right/1px 12px no-repeat;opacity:.7}
+.panel{box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.ph{background:rgba(61,255,143,.03)}
+.lbl{box-shadow:0 0 0 1px rgba(0,0,0,.6),0 6px 18px rgba(0,0,0,.5)}
+.chip{background:var(--glass-hi)}
+.rows li span:last-child{white-space:nowrap;flex-shrink:0}

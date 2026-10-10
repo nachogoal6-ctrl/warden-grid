@@ -3,9 +3,21 @@
 // viem is loaded from jsdelivr only when this panel opens.
 import { esc } from './ui.js';
 import { CHAINS, NETS } from './opscore.js';
+import { CREATE2_DEPLOYER, FACTORY_SALT, FACTORY_INITCODE } from './factorycode.js';
 
-// Factory per chain: filled in once deployed (script/DeployVaultFactory.s.sol in warden-hook). null = not deployed yet.
+// Factory per chain: its CREATE2 address is computed from (deployer, salt, creation code + WETH + router), and the page
+// checks on-chain whether code is there. FACTORY[net] = address once deployed, null before.
 export const FACTORY = { eth: null, base: null, rh: null };
+const EXPECTED = {};
+async function factoryInfo(net) {
+  const { getContractAddress, encodeAbiParameters, concat } = await viem();
+  const code = concat([FACTORY_INITCODE, encodeAbiParameters([{ type: 'address' }, { type: 'address' }], [CHAINS[net].weth, CHAINS[net].router])]);
+  const addr = getContractAddress({ opcode: 'CREATE2', from: CREATE2_DEPLOYER, salt: FACTORY_SALT, bytecode: code });
+  const p = await pub(); const onchain = await p.getBytecode({ address: addr }).catch(() => null);
+  EXPECTED[net] = { addr, code };
+  FACTORY[net] = onchain && onchain !== '0x' ? addr : null;
+  return EXPECTED[net];
+}
 
 const VIEM = 'https://cdn.jsdelivr.net/npm/viem@2.21.54/+esm';
 let V = null; const viem = async () => (V ||= await import(VIEM));
@@ -77,7 +89,10 @@ function view() {
     ${L.msg ? `<p class="lv-msg">${L.msg}</p>` : ''}
     <div class="lv-grid">
       <section class="lv-card"><h4>1 · Open a vault</h4>
-        ${f ? `<p>Factory on ${esc(NETS[L.net].name)}: <code>${short(f)}</code></p>` : `<p class="note">The vault factory is <b>not deployed on ${esc(NETS[L.net].name)} yet</b>. It goes live once it is deployed from the project wallet. Until then you can manage an existing vault below.</p>`}
+        ${f ? `<p>Factory on ${esc(NETS[L.net].name)}: <a href="${CHAINS[L.net].explorer}/address/${f}" target="_blank" rel="noopener"><code>${short(f)}</code></a></p>`
+          : EXPECTED[L.net] ? `<p class="note">The vault factory is <b>not deployed on ${esc(NETS[L.net].name)} yet</b>. Its address will be <code>${short(EXPECTED[L.net].addr)}</code> (fixed by CREATE2). Anyone can deploy it with one transaction: the factory has no owner and gives the deployer no control.</p>
+            <button type="button" class="ap-go lv-deploy" data-lv="deploy">deploy factory on ${esc(NETS[L.net].name)}</button>`
+          : '<p class="note">Checking the factory on-chain…</p>'}
         <form data-lvf="create">
           <label><span>Keeper address (the bot)</span><input name="keeper" placeholder="0x…" spellcheck="false" required></label>
           <label><span>Max per trade (ETH)</span><input name="mpt" type="number" step="any" min="0" value="0.05"></label>
@@ -112,16 +127,23 @@ function view() {
     <p class="src">Contracts: WardenVault + WardenVaultFactory (warden-hook repo, 65 tests, internal review). Router per network: Uniswap SwapRouter02, verified on-chain. The keeper bot is warden-keeper (dry-run by default).</p></div>`;
 }
 
+async function refreshFactory() { try { await factoryInfo(L.net); } catch (e) { L.msg = esc(e.shortMessage || e.message); } draw(); }
+
 export function mountLive(el) {
-  root = el; draw();
+  root = el; draw(); refreshFactory();
   if (L.vault) load().then(draw).catch(e => { L.msg = esc(e.shortMessage || e.message); draw(); });
-  el.onchange = e => { if (e.target.matches('.lv-net')) { L.net = e.target.value; L.state = null; remember(); load().then(draw).catch(() => draw()); draw(); } };
+  el.onchange = e => { if (e.target.matches('.lv-net')) { L.net = e.target.value; L.state = null; remember(); refreshFactory(); load().then(draw).catch(() => draw()); draw(); } };
   el.onclick = async e => {
     const b = e.target.closest('[data-lv]'); if (!b) return; e.preventDefault();
     const a = b.dataset.lv, { parseEther, maxUint256 } = await viem();
     const call = (functionName, args, extra = {}) => (w, A) => w.writeContract({ address: L.vault, abi: A.v, functionName, args, ...extra });
     if (a === 'connect') { try { await wallet(); L.msg = ''; await load(); } catch (er) { L.msg = esc(er.shortMessage || er.message); } draw(); }
     if (a === 'mine') { try { const p = await pub(), A = await abis(); const list = await p.readContract({ address: FACTORY[L.net], abi: A.f, functionName: 'vaultsOf', args: [L.account] }); if (list.length) { L.vault = list[list.length - 1]; remember(); await load(); } else L.msg = 'No vault for this wallet on this network.'; } catch (er) { L.msg = esc(er.message); } draw(); }
+    if (a === 'deploy') {
+      const info = EXPECTED[L.net] || await factoryInfo(L.net);
+      await tx(`Deploy factory on ${NETS[L.net].name}`, (w) => w.sendTransaction({ to: CREATE2_DEPLOYER, data: FACTORY_SALT + info.code.slice(2) }));
+      await refreshFactory(); return;
+    }
     if (a === 'pause') tx('Pause', call('setPaused', [true]));
     if (a === 'unpause') tx('Resume', call('setPaused', [false]));
     if (a === 'revoke') tx('Revoke keeper', call('setKeeper', ['0x0000000000000000000000000000000000000000']));
