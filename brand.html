@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Warden Grid · Brand kit</title>
-<link rel="icon" href="brand/mark.svg" type="image/svg+xml">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{--void:#010402;--ink:#9ff5bd;--dim:#3f8f5d;--code:#3dff8f;--hot:#b4ffcb;--deep:#21b864;--line:rgba(61,255,143,.18)}
@@ -29,106 +29,241 @@ h2{font:400 14px "Share Tech Mono",monospace;letter-spacing:.2em;text-transform:
 ul.rules{padding-left:18px} ul.rules li{margin:4px 0}
 footer{margin-top:50px;color:var(--dim);font-size:11px}
 </style></head><body><div class="wrap">
-<header><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+<header><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark v2: hooded sentinel in a faceted shield. Original design for this project. -->
   <defs>
-    <linearGradient id="wg-edge-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
-    <linearGradient id="wg-body-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+    <linearGradient id="wr-b1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fff0"/><stop offset=".35" stop-color="#7dffb4"/><stop offset="1" stop-color="#169a52"/></linearGradient>
+    <linearGradient id="wl-b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#062414"/><stop offset="1" stop-color="#03130a"/></linearGradient>
+    <linearGradient id="wrt-b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#020b06"/><stop offset="1" stop-color="#051c0f"/></linearGradient>
+    <linearGradient id="hl-b1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6dffaa"/><stop offset="1" stop-color="#1fb463"/></linearGradient>
+    <linearGradient id="hr-b1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd679"/><stop offset="1" stop-color="#0c6435"/></linearGradient>
+    <linearGradient id="vz-b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3dff8f"/><stop offset=".5" stop-color="#f4fff8"/><stop offset="1" stop-color="#3dff8f"/></linearGradient>
+    <radialGradient id="glow-b1" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3dff8f" stop-opacity=".55"/><stop offset="1" stop-color="#3dff8f" stop-opacity="0"/></radialGradient>
   </defs>
-  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-h)" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-h)"/>
-  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
-  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
-  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
-  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+  <!-- shield: rim, then two bevelled halves -->
+  <path d="M32 2.5 58 12.2V32.2c0 14.8-10.8 24.6-26 30C16.8 56.8 6 47 6 32.2V12.2Z" fill="url(#wr-b1)"/>
+  <path d="M32 6.2V58C19.6 53.2 9.6 44.6 9.6 32.2V14.6Z" fill="url(#wl-b1)"/>
+  <path d="M32 6.2 54.4 14.6V32.2C54.4 44.6 44.4 53.2 32 58Z" fill="url(#wrt-b1)"/>
+  <!-- circuit traces in the shield -->
+  <g fill="none" stroke="#1d7a45" stroke-width=".7" opacity=".9">
+    <path d="M12.5 20h4.5l3 3v9"/><path d="M51.5 20H47l-3 3v9"/><path d="M16 13.5h5l3 3"/><path d="M48 13.5h-5l-3 3"/>
+  </g>
+  <g fill="#3dff8f"><circle cx="12.5" cy="20" r=".9"/><circle cx="51.5" cy="20" r=".9"/><circle cx="16" cy="13.5" r=".8"/><circle cx="48" cy="13.5" r=".8"/></g>
+  <!-- hooded sentinel: lit left facet, shaded right facet -->
+  <path d="M32 10.5 20 25v9.4l-7.4 7.4v3.6c5 5.6 11.6 9.4 19.4 11.9Z" fill="url(#hl-b1)"/>
+  <path d="M32 10.5 44 25v9.4l7.4 7.4v3.6C46.4 51 39.8 54.8 32 57.3Z" fill="url(#hr-b1)"/>
+  <path d="M32 10.5V25" stroke="#c9ffdd" stroke-width=".7" opacity=".6"/>
+  <!-- face cavity and visor -->
+  <circle cx="32" cy="31.2" r="11" fill="url(#glow-b1)"/>
+  <path d="M23.6 25.8h16.8v8.4l-4.2 4.2h-8.4l-4.2-4.2Z" fill="#010402"/>
+  <rect x="25.2" y="29.4" width="13.6" height="3" rx=".4" fill="url(#vz-b1)"/>
+  <rect x="25.2" y="29.4" width="13.6" height=".9" fill="#ffffff" opacity=".8"/>
+  <!-- chest: W as a circuit chevron with nodes -->
+  <path d="M24.8 45.2 28.4 49 32 45.2 35.6 49 39.2 45.2" fill="none" stroke="#010402" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g fill="#010402"><circle cx="24.8" cy="45.2" r="1.3"/><circle cx="39.2" cy="45.2" r="1.3"/></g>
 </svg><div><b>WARDEN_GRID</b><span>BRAND KIT · $WARD</span></div></header>
-<p>The mark is <b>the Warden</b>: a hooded sentinel inside a shield, visor lit, a W on its chest. It is the keeper of the Gate in the Grid's lore, and the face of every agent. Original artwork for this project.</p>
+<p>The mark is <b>the Warden</b>: a hooded sentinel inside a faceted shield, visor lit, circuit traces at its shoulders, a W on its chest. It is the keeper of the Gate in the Grid's lore, and the face of every agent. Original artwork for this project.</p>
 
 <h2>Logo</h2>
 <div class="grid">
-  <div class="card"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <div class="card"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark v2: hooded sentinel in a faceted shield. Original design for this project. -->
   <defs>
-    <linearGradient id="wg-edge-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
-    <linearGradient id="wg-body-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+    <linearGradient id="wr-b2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fff0"/><stop offset=".35" stop-color="#7dffb4"/><stop offset="1" stop-color="#169a52"/></linearGradient>
+    <linearGradient id="wl-b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#062414"/><stop offset="1" stop-color="#03130a"/></linearGradient>
+    <linearGradient id="wrt-b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#020b06"/><stop offset="1" stop-color="#051c0f"/></linearGradient>
+    <linearGradient id="hl-b2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6dffaa"/><stop offset="1" stop-color="#1fb463"/></linearGradient>
+    <linearGradient id="hr-b2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd679"/><stop offset="1" stop-color="#0c6435"/></linearGradient>
+    <linearGradient id="vz-b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3dff8f"/><stop offset=".5" stop-color="#f4fff8"/><stop offset="1" stop-color="#3dff8f"/></linearGradient>
+    <radialGradient id="glow-b2" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3dff8f" stop-opacity=".55"/><stop offset="1" stop-color="#3dff8f" stop-opacity="0"/></radialGradient>
   </defs>
-  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-a)" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-a)"/>
-  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
-  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
-  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
-  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+  <!-- shield: rim, then two bevelled halves -->
+  <path d="M32 2.5 58 12.2V32.2c0 14.8-10.8 24.6-26 30C16.8 56.8 6 47 6 32.2V12.2Z" fill="url(#wr-b2)"/>
+  <path d="M32 6.2V58C19.6 53.2 9.6 44.6 9.6 32.2V14.6Z" fill="url(#wl-b2)"/>
+  <path d="M32 6.2 54.4 14.6V32.2C54.4 44.6 44.4 53.2 32 58Z" fill="url(#wrt-b2)"/>
+  <!-- circuit traces in the shield -->
+  <g fill="none" stroke="#1d7a45" stroke-width=".7" opacity=".9">
+    <path d="M12.5 20h4.5l3 3v9"/><path d="M51.5 20H47l-3 3v9"/><path d="M16 13.5h5l3 3"/><path d="M48 13.5h-5l-3 3"/>
+  </g>
+  <g fill="#3dff8f"><circle cx="12.5" cy="20" r=".9"/><circle cx="51.5" cy="20" r=".9"/><circle cx="16" cy="13.5" r=".8"/><circle cx="48" cy="13.5" r=".8"/></g>
+  <!-- hooded sentinel: lit left facet, shaded right facet -->
+  <path d="M32 10.5 20 25v9.4l-7.4 7.4v3.6c5 5.6 11.6 9.4 19.4 11.9Z" fill="url(#hl-b2)"/>
+  <path d="M32 10.5 44 25v9.4l7.4 7.4v3.6C46.4 51 39.8 54.8 32 57.3Z" fill="url(#hr-b2)"/>
+  <path d="M32 10.5V25" stroke="#c9ffdd" stroke-width=".7" opacity=".6"/>
+  <!-- face cavity and visor -->
+  <circle cx="32" cy="31.2" r="11" fill="url(#glow-b2)"/>
+  <path d="M23.6 25.8h16.8v8.4l-4.2 4.2h-8.4l-4.2-4.2Z" fill="#010402"/>
+  <rect x="25.2" y="29.4" width="13.6" height="3" rx=".4" fill="url(#vz-b2)"/>
+  <rect x="25.2" y="29.4" width="13.6" height=".9" fill="#ffffff" opacity=".8"/>
+  <!-- chest: W as a circuit chevron with nodes -->
+  <path d="M24.8 45.2 28.4 49 32 45.2 35.6 49 39.2 45.2" fill="none" stroke="#010402" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g fill="#010402"><circle cx="24.8" cy="45.2" r="1.3"/><circle cx="39.2" cy="45.2" r="1.3"/></g>
 </svg><p>Primary mark · on dark</p></div>
-  <div class="card light"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <div class="card light"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark v2: hooded sentinel in a faceted shield. Original design for this project. -->
   <defs>
-    <linearGradient id="wg-edge-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
-    <linearGradient id="wg-body-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+    <linearGradient id="wr-b3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fff0"/><stop offset=".35" stop-color="#7dffb4"/><stop offset="1" stop-color="#169a52"/></linearGradient>
+    <linearGradient id="wl-b3" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#062414"/><stop offset="1" stop-color="#03130a"/></linearGradient>
+    <linearGradient id="wrt-b3" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#020b06"/><stop offset="1" stop-color="#051c0f"/></linearGradient>
+    <linearGradient id="hl-b3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6dffaa"/><stop offset="1" stop-color="#1fb463"/></linearGradient>
+    <linearGradient id="hr-b3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd679"/><stop offset="1" stop-color="#0c6435"/></linearGradient>
+    <linearGradient id="vz-b3" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3dff8f"/><stop offset=".5" stop-color="#f4fff8"/><stop offset="1" stop-color="#3dff8f"/></linearGradient>
+    <radialGradient id="glow-b3" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3dff8f" stop-opacity=".55"/><stop offset="1" stop-color="#3dff8f" stop-opacity="0"/></radialGradient>
   </defs>
-  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-b)" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-b)"/>
-  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
-  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
-  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
-  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+  <!-- shield: rim, then two bevelled halves -->
+  <path d="M32 2.5 58 12.2V32.2c0 14.8-10.8 24.6-26 30C16.8 56.8 6 47 6 32.2V12.2Z" fill="url(#wr-b3)"/>
+  <path d="M32 6.2V58C19.6 53.2 9.6 44.6 9.6 32.2V14.6Z" fill="url(#wl-b3)"/>
+  <path d="M32 6.2 54.4 14.6V32.2C54.4 44.6 44.4 53.2 32 58Z" fill="url(#wrt-b3)"/>
+  <!-- circuit traces in the shield -->
+  <g fill="none" stroke="#1d7a45" stroke-width=".7" opacity=".9">
+    <path d="M12.5 20h4.5l3 3v9"/><path d="M51.5 20H47l-3 3v9"/><path d="M16 13.5h5l3 3"/><path d="M48 13.5h-5l-3 3"/>
+  </g>
+  <g fill="#3dff8f"><circle cx="12.5" cy="20" r=".9"/><circle cx="51.5" cy="20" r=".9"/><circle cx="16" cy="13.5" r=".8"/><circle cx="48" cy="13.5" r=".8"/></g>
+  <!-- hooded sentinel: lit left facet, shaded right facet -->
+  <path d="M32 10.5 20 25v9.4l-7.4 7.4v3.6c5 5.6 11.6 9.4 19.4 11.9Z" fill="url(#hl-b3)"/>
+  <path d="M32 10.5 44 25v9.4l7.4 7.4v3.6C46.4 51 39.8 54.8 32 57.3Z" fill="url(#hr-b3)"/>
+  <path d="M32 10.5V25" stroke="#c9ffdd" stroke-width=".7" opacity=".6"/>
+  <!-- face cavity and visor -->
+  <circle cx="32" cy="31.2" r="11" fill="url(#glow-b3)"/>
+  <path d="M23.6 25.8h16.8v8.4l-4.2 4.2h-8.4l-4.2-4.2Z" fill="#010402"/>
+  <rect x="25.2" y="29.4" width="13.6" height="3" rx=".4" fill="url(#vz-b3)"/>
+  <rect x="25.2" y="29.4" width="13.6" height=".9" fill="#ffffff" opacity=".8"/>
+  <!-- chest: W as a circuit chevron with nodes -->
+  <path d="M24.8 45.2 28.4 49 32 45.2 35.6 49 39.2 45.2" fill="none" stroke="#010402" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g fill="#010402"><circle cx="24.8" cy="45.2" r="1.3"/><circle cx="39.2" cy="45.2" r="1.3"/></g>
 </svg><p>Primary mark · on light</p></div>
-  <div class="card"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
-  <defs>
-    <linearGradient id="wg-edge-c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
-    <linearGradient id="wg-body-c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
-  </defs>
-  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="#3dff8f" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="#3dff8f"/>
-  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#3dff8f" stroke-width="0"/>
-  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
-  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#3dff8f"/>
-  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+  <div class="card"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <path d="M32 2.5 58 12.2V32.2c0 14.8-10.8 24.6-26 30C16.8 56.8 6 47 6 32.2V12.2Z" fill="#3dff8f"/>
+  <path d="M32 6.2 54.4 14.6V32.2C54.4 44.6 44.4 53.2 32 58 19.6 53.2 9.6 44.6 9.6 32.2V14.6Z" fill="#010402"/>
+  <path d="M32 10.5 44 25v9.4l7.4 7.4v3.6C46.4 51 39.8 54.8 32 57.3 24.2 54.8 17.6 51 12.6 45.4v-3.6L20 34.4V25Z" fill="#3dff8f"/>
+  <path d="M23.6 25.8h16.8v8.4l-4.2 4.2h-8.4l-4.2-4.2Z" fill="#010402"/>
+  <rect x="25.2" y="29.4" width="13.6" height="3" fill="#3dff8f"/>
+  <path d="M24.8 45.2 28.4 49 32 45.2 35.6 49 39.2 45.2" fill="none" stroke="#010402" stroke-width="2.4" stroke-linecap="square"/>
 </svg><p>One colour · #3dff8f</p></div>
-  <div class="card"><div style="display:flex;gap:14px;align-items:end"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <div class="card"><div style="display:flex;gap:14px;align-items:end"><img src="brand/favicon.svg" width="16" alt=""><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark v2: hooded sentinel in a faceted shield. Original design for this project. -->
   <defs>
-    <linearGradient id="wg-edge-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
-    <linearGradient id="wg-body-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+    <linearGradient id="wr-b5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fff0"/><stop offset=".35" stop-color="#7dffb4"/><stop offset="1" stop-color="#169a52"/></linearGradient>
+    <linearGradient id="wl-b5" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#062414"/><stop offset="1" stop-color="#03130a"/></linearGradient>
+    <linearGradient id="wrt-b5" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#020b06"/><stop offset="1" stop-color="#051c0f"/></linearGradient>
+    <linearGradient id="hl-b5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6dffaa"/><stop offset="1" stop-color="#1fb463"/></linearGradient>
+    <linearGradient id="hr-b5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd679"/><stop offset="1" stop-color="#0c6435"/></linearGradient>
+    <linearGradient id="vz-b5" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3dff8f"/><stop offset=".5" stop-color="#f4fff8"/><stop offset="1" stop-color="#3dff8f"/></linearGradient>
+    <radialGradient id="glow-b5" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3dff8f" stop-opacity=".55"/><stop offset="1" stop-color="#3dff8f" stop-opacity="0"/></radialGradient>
   </defs>
-  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-d)" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-d)"/>
-  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
-  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
-  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
-  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
-</svg><svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <!-- shield: rim, then two bevelled halves -->
+  <path d="M32 2.5 58 12.2V32.2c0 14.8-10.8 24.6-26 30C16.8 56.8 6 47 6 32.2V12.2Z" fill="url(#wr-b5)"/>
+  <path d="M32 6.2V58C19.6 53.2 9.6 44.6 9.6 32.2V14.6Z" fill="url(#wl-b5)"/>
+  <path d="M32 6.2 54.4 14.6V32.2C54.4 44.6 44.4 53.2 32 58Z" fill="url(#wrt-b5)"/>
+  <!-- circuit traces in the shield -->
+  <g fill="none" stroke="#1d7a45" stroke-width=".7" opacity=".9">
+    <path d="M12.5 20h4.5l3 3v9"/><path d="M51.5 20H47l-3 3v9"/><path d="M16 13.5h5l3 3"/><path d="M48 13.5h-5l-3 3"/>
+  </g>
+  <g fill="#3dff8f"><circle cx="12.5" cy="20" r=".9"/><circle cx="51.5" cy="20" r=".9"/><circle cx="16" cy="13.5" r=".8"/><circle cx="48" cy="13.5" r=".8"/></g>
+  <!-- hooded sentinel: lit left facet, shaded right facet -->
+  <path d="M32 10.5 20 25v9.4l-7.4 7.4v3.6c5 5.6 11.6 9.4 19.4 11.9Z" fill="url(#hl-b5)"/>
+  <path d="M32 10.5 44 25v9.4l7.4 7.4v3.6C46.4 51 39.8 54.8 32 57.3Z" fill="url(#hr-b5)"/>
+  <path d="M32 10.5V25" stroke="#c9ffdd" stroke-width=".7" opacity=".6"/>
+  <!-- face cavity and visor -->
+  <circle cx="32" cy="31.2" r="11" fill="url(#glow-b5)"/>
+  <path d="M23.6 25.8h16.8v8.4l-4.2 4.2h-8.4l-4.2-4.2Z" fill="#010402"/>
+  <rect x="25.2" y="29.4" width="13.6" height="3" rx=".4" fill="url(#vz-b5)"/>
+  <rect x="25.2" y="29.4" width="13.6" height=".9" fill="#ffffff" opacity=".8"/>
+  <!-- chest: W as a circuit chevron with nodes -->
+  <path d="M24.8 45.2 28.4 49 32 45.2 35.6 49 39.2 45.2" fill="none" stroke="#010402" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g fill="#010402"><circle cx="24.8" cy="45.2" r="1.3"/><circle cx="39.2" cy="45.2" r="1.3"/></g>
+</svg><svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark v2: hooded sentinel in a faceted shield. Original design for this project. -->
   <defs>
-    <linearGradient id="wg-edge-e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
-    <linearGradient id="wg-body-e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+    <linearGradient id="wr-b6" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fff0"/><stop offset=".35" stop-color="#7dffb4"/><stop offset="1" stop-color="#169a52"/></linearGradient>
+    <linearGradient id="wl-b6" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#062414"/><stop offset="1" stop-color="#03130a"/></linearGradient>
+    <linearGradient id="wrt-b6" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#020b06"/><stop offset="1" stop-color="#051c0f"/></linearGradient>
+    <linearGradient id="hl-b6" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6dffaa"/><stop offset="1" stop-color="#1fb463"/></linearGradient>
+    <linearGradient id="hr-b6" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd679"/><stop offset="1" stop-color="#0c6435"/></linearGradient>
+    <linearGradient id="vz-b6" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3dff8f"/><stop offset=".5" stop-color="#f4fff8"/><stop offset="1" stop-color="#3dff8f"/></linearGradient>
+    <radialGradient id="glow-b6" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3dff8f" stop-opacity=".55"/><stop offset="1" stop-color="#3dff8f" stop-opacity="0"/></radialGradient>
   </defs>
-  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-e)" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-e)"/>
-  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
-  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
-  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
-  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
-</svg><svg width="16" height="16" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <!-- shield: rim, then two bevelled halves -->
+  <path d="M32 2.5 58 12.2V32.2c0 14.8-10.8 24.6-26 30C16.8 56.8 6 47 6 32.2V12.2Z" fill="url(#wr-b6)"/>
+  <path d="M32 6.2V58C19.6 53.2 9.6 44.6 9.6 32.2V14.6Z" fill="url(#wl-b6)"/>
+  <path d="M32 6.2 54.4 14.6V32.2C54.4 44.6 44.4 53.2 32 58Z" fill="url(#wrt-b6)"/>
+  <!-- circuit traces in the shield -->
+  <g fill="none" stroke="#1d7a45" stroke-width=".7" opacity=".9">
+    <path d="M12.5 20h4.5l3 3v9"/><path d="M51.5 20H47l-3 3v9"/><path d="M16 13.5h5l3 3"/><path d="M48 13.5h-5l-3 3"/>
+  </g>
+  <g fill="#3dff8f"><circle cx="12.5" cy="20" r=".9"/><circle cx="51.5" cy="20" r=".9"/><circle cx="16" cy="13.5" r=".8"/><circle cx="48" cy="13.5" r=".8"/></g>
+  <!-- hooded sentinel: lit left facet, shaded right facet -->
+  <path d="M32 10.5 20 25v9.4l-7.4 7.4v3.6c5 5.6 11.6 9.4 19.4 11.9Z" fill="url(#hl-b6)"/>
+  <path d="M32 10.5 44 25v9.4l7.4 7.4v3.6C46.4 51 39.8 54.8 32 57.3Z" fill="url(#hr-b6)"/>
+  <path d="M32 10.5V25" stroke="#c9ffdd" stroke-width=".7" opacity=".6"/>
+  <!-- face cavity and visor -->
+  <circle cx="32" cy="31.2" r="11" fill="url(#glow-b6)"/>
+  <path d="M23.6 25.8h16.8v8.4l-4.2 4.2h-8.4l-4.2-4.2Z" fill="#010402"/>
+  <rect x="25.2" y="29.4" width="13.6" height="3" rx=".4" fill="url(#vz-b6)"/>
+  <rect x="25.2" y="29.4" width="13.6" height=".9" fill="#ffffff" opacity=".8"/>
+  <!-- chest: W as a circuit chevron with nodes -->
+  <path d="M24.8 45.2 28.4 49 32 45.2 35.6 49 39.2 45.2" fill="none" stroke="#010402" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g fill="#010402"><circle cx="24.8" cy="45.2" r="1.3"/><circle cx="39.2" cy="45.2" r="1.3"/></g>
+</svg><svg width="16" height="16" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark v2: hooded sentinel in a faceted shield. Original design for this project. -->
   <defs>
-    <linearGradient id="wg-edge-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
-    <linearGradient id="wg-body-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+    <linearGradient id="wr-b7" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fff0"/><stop offset=".35" stop-color="#7dffb4"/><stop offset="1" stop-color="#169a52"/></linearGradient>
+    <linearGradient id="wl-b7" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#062414"/><stop offset="1" stop-color="#03130a"/></linearGradient>
+    <linearGradient id="wrt-b7" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#020b06"/><stop offset="1" stop-color="#051c0f"/></linearGradient>
+    <linearGradient id="hl-b7" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6dffaa"/><stop offset="1" stop-color="#1fb463"/></linearGradient>
+    <linearGradient id="hr-b7" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd679"/><stop offset="1" stop-color="#0c6435"/></linearGradient>
+    <linearGradient id="vz-b7" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3dff8f"/><stop offset=".5" stop-color="#f4fff8"/><stop offset="1" stop-color="#3dff8f"/></linearGradient>
+    <radialGradient id="glow-b7" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3dff8f" stop-opacity=".55"/><stop offset="1" stop-color="#3dff8f" stop-opacity="0"/></radialGradient>
   </defs>
-  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-f)" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-f)"/>
-  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
-  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
-  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
-  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+  <!-- shield: rim, then two bevelled halves -->
+  <path d="M32 2.5 58 12.2V32.2c0 14.8-10.8 24.6-26 30C16.8 56.8 6 47 6 32.2V12.2Z" fill="url(#wr-b7)"/>
+  <path d="M32 6.2V58C19.6 53.2 9.6 44.6 9.6 32.2V14.6Z" fill="url(#wl-b7)"/>
+  <path d="M32 6.2 54.4 14.6V32.2C54.4 44.6 44.4 53.2 32 58Z" fill="url(#wrt-b7)"/>
+  <!-- circuit traces in the shield -->
+  <g fill="none" stroke="#1d7a45" stroke-width=".7" opacity=".9">
+    <path d="M12.5 20h4.5l3 3v9"/><path d="M51.5 20H47l-3 3v9"/><path d="M16 13.5h5l3 3"/><path d="M48 13.5h-5l-3 3"/>
+  </g>
+  <g fill="#3dff8f"><circle cx="12.5" cy="20" r=".9"/><circle cx="51.5" cy="20" r=".9"/><circle cx="16" cy="13.5" r=".8"/><circle cx="48" cy="13.5" r=".8"/></g>
+  <!-- hooded sentinel: lit left facet, shaded right facet -->
+  <path d="M32 10.5 20 25v9.4l-7.4 7.4v3.6c5 5.6 11.6 9.4 19.4 11.9Z" fill="url(#hl-b7)"/>
+  <path d="M32 10.5 44 25v9.4l7.4 7.4v3.6C46.4 51 39.8 54.8 32 57.3Z" fill="url(#hr-b7)"/>
+  <path d="M32 10.5V25" stroke="#c9ffdd" stroke-width=".7" opacity=".6"/>
+  <!-- face cavity and visor -->
+  <circle cx="32" cy="31.2" r="11" fill="url(#glow-b7)"/>
+  <path d="M23.6 25.8h16.8v8.4l-4.2 4.2h-8.4l-4.2-4.2Z" fill="#010402"/>
+  <rect x="25.2" y="29.4" width="13.6" height="3" rx=".4" fill="url(#vz-b7)"/>
+  <rect x="25.2" y="29.4" width="13.6" height=".9" fill="#ffffff" opacity=".8"/>
+  <!-- chest: W as a circuit chevron with nodes -->
+  <path d="M24.8 45.2 28.4 49 32 45.2 35.6 49 39.2 45.2" fill="none" stroke="#010402" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g fill="#010402"><circle cx="24.8" cy="45.2" r="1.3"/><circle cx="39.2" cy="45.2" r="1.3"/></g>
 </svg></div><p>Holds up from 16 px (favicon) to billboard</p></div>
 </div>
 
 <h2>Lockup</h2>
-<div class="lock"><svg width="96" height="96" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+<div class="lock"><svg width="96" height="96" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark v2: hooded sentinel in a faceted shield. Original design for this project. -->
   <defs>
-    <linearGradient id="wg-edge-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
-    <linearGradient id="wg-body-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+    <linearGradient id="wr-b8" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fff0"/><stop offset=".35" stop-color="#7dffb4"/><stop offset="1" stop-color="#169a52"/></linearGradient>
+    <linearGradient id="wl-b8" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#062414"/><stop offset="1" stop-color="#03130a"/></linearGradient>
+    <linearGradient id="wrt-b8" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#020b06"/><stop offset="1" stop-color="#051c0f"/></linearGradient>
+    <linearGradient id="hl-b8" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6dffaa"/><stop offset="1" stop-color="#1fb463"/></linearGradient>
+    <linearGradient id="hr-b8" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd679"/><stop offset="1" stop-color="#0c6435"/></linearGradient>
+    <linearGradient id="vz-b8" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3dff8f"/><stop offset=".5" stop-color="#f4fff8"/><stop offset="1" stop-color="#3dff8f"/></linearGradient>
+    <radialGradient id="glow-b8" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3dff8f" stop-opacity=".55"/><stop offset="1" stop-color="#3dff8f" stop-opacity="0"/></radialGradient>
   </defs>
-  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-g)" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-g)"/>
-  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
-  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
-  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
-  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+  <!-- shield: rim, then two bevelled halves -->
+  <path d="M32 2.5 58 12.2V32.2c0 14.8-10.8 24.6-26 30C16.8 56.8 6 47 6 32.2V12.2Z" fill="url(#wr-b8)"/>
+  <path d="M32 6.2V58C19.6 53.2 9.6 44.6 9.6 32.2V14.6Z" fill="url(#wl-b8)"/>
+  <path d="M32 6.2 54.4 14.6V32.2C54.4 44.6 44.4 53.2 32 58Z" fill="url(#wrt-b8)"/>
+  <!-- circuit traces in the shield -->
+  <g fill="none" stroke="#1d7a45" stroke-width=".7" opacity=".9">
+    <path d="M12.5 20h4.5l3 3v9"/><path d="M51.5 20H47l-3 3v9"/><path d="M16 13.5h5l3 3"/><path d="M48 13.5h-5l-3 3"/>
+  </g>
+  <g fill="#3dff8f"><circle cx="12.5" cy="20" r=".9"/><circle cx="51.5" cy="20" r=".9"/><circle cx="16" cy="13.5" r=".8"/><circle cx="48" cy="13.5" r=".8"/></g>
+  <!-- hooded sentinel: lit left facet, shaded right facet -->
+  <path d="M32 10.5 20 25v9.4l-7.4 7.4v3.6c5 5.6 11.6 9.4 19.4 11.9Z" fill="url(#hl-b8)"/>
+  <path d="M32 10.5 44 25v9.4l7.4 7.4v3.6C46.4 51 39.8 54.8 32 57.3Z" fill="url(#hr-b8)"/>
+  <path d="M32 10.5V25" stroke="#c9ffdd" stroke-width=".7" opacity=".6"/>
+  <!-- face cavity and visor -->
+  <circle cx="32" cy="31.2" r="11" fill="url(#glow-b8)"/>
+  <path d="M23.6 25.8h16.8v8.4l-4.2 4.2h-8.4l-4.2-4.2Z" fill="#010402"/>
+  <rect x="25.2" y="29.4" width="13.6" height="3" rx=".4" fill="url(#vz-b8)"/>
+  <rect x="25.2" y="29.4" width="13.6" height=".9" fill="#ffffff" opacity=".8"/>
+  <!-- chest: W as a circuit chevron with nodes -->
+  <path d="M24.8 45.2 28.4 49 32 45.2 35.6 49 39.2 45.2" fill="none" stroke="#010402" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g fill="#010402"><circle cx="24.8" cy="45.2" r="1.3"/><circle cx="39.2" cy="45.2" r="1.3"/></g>
 </svg><div><b>WARDEN_GRID</b><span>the swarm runs the city</span></div></div>
 
 <h2>Mascot</h2>
@@ -161,7 +296,7 @@ footer{margin-top:50px;color:var(--dim);font-size:11px}
 
 <h2>Downloads</h2>
 <div class="dl">
-  <a href="brand/mark.svg" download>mark.svg</a><a href="brand/mark-mono.svg" download>mark-mono.svg</a>
+  <a href="brand/mark.svg" download>mark.svg</a><a href="brand/favicon.svg" download>favicon.svg</a><a href="brand/mark-mono.svg" download>mark-mono.svg</a>
   <a href="brand/mark-512.png" download>mark 512 png</a><a href="brand/lockup.png" download>lockup png</a>
   <a href="brand/mascot.png" download>mascot png</a><a href="brand/og.png" download>social card</a>
 </div>

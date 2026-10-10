@@ -9,6 +9,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { buildAtmos, REFLECT_SHADER } from './atmos.js';
+import { buildEmblem } from './emblem.js';
 import { shared, FOG, FOG_DENSITY, G, ALARM, MINT } from './shaders.js';
 import { buildCity, DISTRICTS } from './city.js';
 import { buildAgents, MAX_AGENTS } from './agents.js';
@@ -47,7 +48,7 @@ const key = new THREE.DirectionalLight(0x3dff8f, 0.45); key.position.set(-30, 70
 
 const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.3, 800);
 const portrait = () => innerWidth / innerHeight < 0.9;
-const HOME = { pos: new THREE.Vector3(-14, 52, 118), target: new THREE.Vector3(0, 20, -10) };
+const HOME = { pos: new THREE.Vector3(-18, 66, 142), target: new THREE.Vector3(0, 38, -10) };
 if (portrait()) { HOME.pos.multiplyScalar(1.45); camera.fov = 64; camera.updateProjectionMatrix(); }
 camera.position.copy(HOME.pos);
 
@@ -60,6 +61,7 @@ controls.autoRotateSpeed = 0.3;
 /* ------------------------------ world ------------------------------ */
 const city = buildCity(scene, { reflectiveGround: !LOW });
 const atmos = buildAtmos(scene, { low: LOW });
+const emblem = buildEmblem(scene, { y: 80 });
 if (!LOW) {   // wet ground with real reflections of the city (renders the scene a second time, at half resolution)
   const ground = new Reflector(new THREE.PlaneGeometry(800, 800), { clipBias: 0.003, textureWidth: Math.round(innerWidth * 0.5), textureHeight: Math.round(innerHeight * 0.5), color: 0x777777, shader: REFLECT_SHADER });
   ground.rotation.x = -Math.PI / 2; scene.add(ground);
@@ -393,7 +395,7 @@ function frame() {
   sceneTick(dt);
   fx.update(dt * sp); fx.placeTags(dt);
   for (const f of city.anim) f(T, dt * sp, mode);
-  atmos.update(T);
+  atmos.update(T); emblem.update(T);
   agents.update(T, dt * sp, mode);
   warden.update(T, dt * sp, mode);
 
