@@ -20,6 +20,8 @@ Independent community project. Not run or endorsed by Identity.md.
 - `codex.js` — el Codex: lore de la ciudad por capítulos (con bloques "on record" que separan ficción y datos reales).
 - `scan.js` — scan.exe: el Consejo revisa un token (mercados, contrato, tickers copiados, enlaces). Solo hechos con fuente, sin puntuación ni señales.
 - `council.js` — panel de scan.exe y el avatar del Warden (frases a partir del estado real).
+- `ops.js` — ops.exe: 8 agentes (scout, risk, whale, momentum, social, dev, exit, warden), radar con puntuación transparente, mercado, operaciones grandes, intel y autopiloto en papel (precios reales, operaciones simuladas).
+- `opsui.js` — ventana de ops.exe (pestañas, red, reloj de ciclo, controles del autopiloto).
 - `avatar.js` — avatar pixel del Warden y sigilos pixel deterministas por dirección o seat.
 - `vercel.json` — config de Vercel (estático).
 - `grimhaven-backup.html` — versión gótica anterior.
@@ -34,13 +36,16 @@ Independent community project. Not run or endorsed by Identity.md.
 | Gas de Ethereum | `eth_gasPrice` en el mismo RPC (cada 12 s) |
 | scan.exe · mercados, copias, enlaces | `api.dexscreener.com/latest/dex/tokens/<addr>` y `/search?q=<ticker>` |
 | scan.exe · contrato | RPC públicos publicnode (Ethereum, Base, BNB Chain): `eth_getCode`, `owner()`, slot EIP-1967, `totalSupply()`, `decimals()`, `balanceOf(0x…dEaD)` |
+| ops.exe · pools nuevos/tendencia, operaciones | `api.geckoterminal.com/api/v2/networks/{eth,base}/…` |
+| ops.exe · TVL y volumen DEX | `api.llama.fi/v2/chains`, `api.llama.fi/overview/dexs/{chain}` |
+| ops.exe · ETH/BTC | `api.coingecko.com/api/v3/simple/price` |
 | Contrato Intake del oráculo | `0x1397434cd35e8a9c8ac312a61d3a285eb31dea56` (docs IMD) |
 
 $WARD no está lanzado: todos los datos del token muestran "not launched yet".
 Si una fuente falla, la web muestra "no data" (y las calles quedan vacías).
 
 ## Comandos del terminal
-`scan 0x…` · `lore [capítulo]` · `fragment` · `go <distrito>` · `state <calm|panic|buyback|milestone>` · `seat <n>` · `stats` · `intro` · `home` · `clear`
+`ops [pestaña]` · `autopilot` · `scan 0x…` · `lore [capítulo]` · `fragment` · `go <distrito>` · `state <calm|panic|buyback|milestone>` · `seat <n>` · `stats` · `intro` · `home` · `clear`
 
 ## Calidad
 La web elige calidad sola (baja en móviles y equipos pequeños) y ajusta la resolución en vivo para mantener la fluidez. El botón `quality` de la barra inferior la fija en auto / high / low (se recuerda en ese navegador). En calidad baja se muestran como máximo 400 figuras y la ficha del Nest lo indica.

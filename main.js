@@ -238,7 +238,7 @@ document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click'
 wardenDock = bindWarden({ onClick: () => { endIntro(); council.open(); }, getMode: () => mode });
 
 /* ------------------------------ terminal ------------------------------ */
-const HELP = 'commands: ops [matrix|radar|market|tape|intel|auto] · scan <0x token> · go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · seat <n> · lore [grid|warden|swarm|oracle|council|programs|rogues|states|fragments|record] · fragment · stats · intro · home · clear';
+const HELP = 'commands: ops [matrix|radar|market|tape|intel|auto] · scan <0x token> · go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · seat <n> · lore [grid|warden|swarm|oracle|council|nightshift|programs|rogues|states|fragments|record] · fragment · stats · intro · home · clear';
 $('#cmd').addEventListener('submit', e => {
   e.preventDefault();
   const inp = $('#cmd-in'); const [c, a] = inp.value.trim().toLowerCase().split(/\s+/); inp.value = '';

@@ -50,7 +50,15 @@ export const CHAPTERS = [
       <blockquote>a flag is not an accusation. it is a place to look.</blockquote>
       ${rec('live', 'scan.exe runs real checks in your browser: DexScreener for markets, mirrors and links, and public RPCs for the contract (Ethereum, Base, BNB Chain). Open it with the Scan button, the Warden avatar, or <code>scan 0x…</code> in the terminal.')}` },
 
-  { id: 'programs', no: '0x05', title: 'The Seven Programs', sub: 'the districts of the city',
+  { id: 'nightshift', no: '0x05', title: 'The Night Shift', sub: 'eight agents and the autopilot',
+    body: () => `
+      <p class="drop">When the city sleeps, eight programs keep walking the markets.</p>
+      <p><em>SCOUT</em> walks the new and trending pools. <em>RISK</em> and <em>DEV</em> open each contract. <em>WHALE</em> reads the tape for the big hands, <em>MOMENTUM</em> feels the price move, and <em>SOCIAL</em> listens for whatever it can hear. The Warden adds up what they bring and draws a line at its threshold. <em>EXIT</em> never stops watching what was bought.</p>
+      <p>The Autopilot follows that line inside limits set by its owner: so much per trade, so many positions, a stop, a target, a time to leave. Pull the red lever and everything closes.</p>
+      <blockquote>an empty radar is an answer. the night shift does not invent prey.</blockquote>
+      ${rec('live · paper', 'ops.exe reads GeckoTerminal, DexScreener, DefiLlama, CoinGecko and public RPCs in your browser, every 90 seconds. The Autopilot trades <b>on paper only</b>: real prices, simulated fills, no funds. Live trading is not enabled.')}` },
+
+  { id: 'programs', no: '0x06', title: 'The Seven Programs', sub: 'the districts of the city',
     body: () => `
       <p class="drop">The Grid is seven programs, each one a district. Tap a name to fly there.</p>
       <div class="dossiers">
@@ -66,7 +74,7 @@ export const CHAPTERS = [
       </div>
       ${rec('mixed', 'The Ledger reacts to real Ethereum blocks and the Oracle Node and Nest to real swarm activity. The Vault, Furnace and Holders\' Block show <b>planned</b> mechanisms. Their figures read "not launched yet".')}` },
 
-  { id: 'rogues', no: '0x06', title: 'Rogue Programs', sub: 'what the Grid was built to stop',
+  { id: 'rogues', no: '0x07', title: 'Rogue Programs', sub: 'what the Grid was built to stop',
     body: () => `
       <p class="drop">Not every program that enters the Grid comes to build. These are the ones the Warden is written against.</p>
       <div class="rog">
@@ -81,7 +89,7 @@ export const CHAPTERS = [
       </div>
       ${rec('planned', 'Countermeasures for sniper, rug, stampede and tourist are planned mechanisms (written contracts or launch-platform features). None are live. The warnings about mirror.exe and whisper.exe apply today.')}` },
 
-  { id: 'states', no: '0x07', title: 'States of the Grid', sub: 'Stable · Breach · Burn · Unlock',
+  { id: 'states', no: '0x08', title: 'States of the Grid', sub: 'Stable · Breach · Burn · Unlock',
     body: () => `
       <p class="drop">The city has four moods. You can set them yourself in the grid.state panel to see what each would look like.</p>
       <dl class="states">
@@ -92,19 +100,21 @@ export const CHAPTERS = [
       </dl>
       ${rec('simulation', 'All four states are a simulation of planned behaviour. No toll, buyback or unlock has happened.')}` },
 
-  { id: 'fragments', no: '0x08', title: 'Recovered Fragments', sub: 'lines found in the falling code',
+  { id: 'fragments', no: '0x09', title: 'Recovered Fragments', sub: 'lines found in the falling code',
     body: () => `
       <p class="drop">Sometimes the code that falls down the towers isn't random. These lines were pulled out of it.</p>
       <ul class="frags">${FRAGMENTS.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
       ${rec('fiction', 'Fragments are fiction, written for the Grid.')}` },
 
-  { id: 'record', no: '0x09', title: 'Lore & Record', sub: 'what here is story, and what is real',
+  { id: 'record', no: '0x0A', title: 'Lore & Record', sub: 'what here is story, and what is real',
     body: () => `
       <p class="drop">The Grid tells a story, but it never lies with numbers.</p>
       <ul class="rows">
         <li><span>Units on the streets, seats, events</span><span class="hot">live · api.imd.fun/swarm</span></li>
         <li><span>Ethereum block and the ledger wave</span><span class="hot">live · publicnode RPC</span></li>
         <li><span>IMD price, Ethereum gas</span><span class="hot">live · dexscreener · publicnode RPC</span></li>
+        <li><span>ops.exe agents, radar, market, large trades</span><span class="hot">live · geckoterminal · dexscreener · defillama · coingecko · RPC</span></li>
+        <li><span>Autopilot trades</span><span>simulation (paper) · live trading not enabled</span></li>
         <li><span>scan.exe reports</span><span class="hot">live · dexscreener · public RPCs</span></li>
         <li><span>$WARD price, swaps, fees, burns, unlocks</span><span>not launched yet</span></li>
         <li><span>Hook, oracle, vault and furnace contracts</span><span>written · not deployed · not audited</span></li>
