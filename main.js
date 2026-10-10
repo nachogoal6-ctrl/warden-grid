@@ -16,6 +16,8 @@ import * as data from './data.js';
 import { bindCodex, FRAGMENTS } from './codex.js';
 import { bindCouncil, bindWarden } from './council.js';
 import { sigilSVG } from './avatar.js';
+import { bindOps } from './opsui.js';
+import { startOps, O as OPS } from './ops.js';
 import { $, fmt, esc, hhmm, makeContent, pushFeed, sysLine, renderStats, updAge, buildLabels, ping, bindSound } from './ui.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -130,7 +132,7 @@ function openDistrict(k) {
 }
 function closeDrawer() { openKey = null; const dr = $('#drawer'); dr.classList.remove('open'); dr.setAttribute('aria-hidden', 'true'); document.body.classList.remove('drawer-open'); }
 $('#d-x').addEventListener('click', closeDrawer);
-addEventListener('keydown', e => { if (e.key === 'Escape') { if (council.isOpen()) council.close(); else if (codex.isOpen()) codex.close(); else closeDrawer(); } });
+addEventListener('keydown', e => { if (e.key === 'Escape') { if (ops.isOpen()) ops.close(); else if (council.isOpen()) council.close(); else if (codex.isOpen()) codex.close(); else closeDrawer(); } });
 const codex = bindCodex({ onGo: k => openDistrict(k) });
 ['#b-codex', '#b-codex-m'].forEach(id => $(id).addEventListener('click', () => { endIntro(); codex.open(); ping(480, 0.05, 'triangle'); }));
 $('#d-body').addEventListener('click', e => { const b = e.target.closest('[data-open-cx]'); if (b) codex.open(b.dataset.openCx); });
@@ -143,6 +145,14 @@ const council = bindCouncil({
   onAgent: (id, state) => { if (state === 'done') { fx.spawn({ from: dpos('hook', 30), to: dpos(id === 'risk' ? 'ledger' : id === 'mirror' ? 'loyalty' : 'oracle', 40), color: '#b4ffcb', dur: 1.4, arc: 18, size: 3.6 }); ping(640 + Math.random() * 200, 0.04); } },
   onDone: R => { city.extra.oracle.flare = 1; if (!wardenDock) return; fx.tag(dpos('hook', 34), `scan · ${R.facts.symbol || 'token'} · ${R.flags.length} flag${R.flags.length === 1 ? '' : 's'}`); wardenDock.say(R.flags.length ? `${R.flags.length} flag${R.flags.length === 1 ? '' : 's'} on ${R.facts.symbol || 'that token'}. read them before you decide anything.` : `no flags on ${R.facts.symbol || 'that token'} from these checks. that is not the same as safe.`); },
 });
+// ops.exe: the city reacts to the agents — scouts dispatch units, picks flare the oracle, paper trades fly to the furnace
+const ops = bindOps({ onEvent: (ev, x) => {
+  if (ev === 'agent' && x === 'scout' && OPS.agents.scout?.state === 'done') for (let n = 0; n < Math.min(6, agents.shown); n++) agents.dispatch(Math.floor(Math.random() * agents.shown), 'hive');
+  if (ev === 'agent' && x === 'warden' && Number(OPS.agents.warden?.stat) > 0) city.extra.oracle.flare = 1;
+  if (ev === 'trade') { fx.spawn({ from: dpos('hook', 30), to: dpos(x.side === 'buy' ? 'vault' : 'furnace', 20), color: x.side === 'buy' ? '#3dff8f' : '#b4ffcb', dur: 1.8, arc: 20, size: 4 }); fx.tag(dpos('hook', 36), `paper ${x.side} · ${x.sym}`); ping(x.side === 'buy' ? 720 : 520, 0.05, 'triangle'); }
+} });
+['#b-ops', '#b-ops-m', '#r-ops'].forEach(id => $(id).addEventListener('click', () => { endIntro(); ops.open(); ping(480, 0.05, 'triangle'); }));
+setTimeout(startOps, 6000);
 $('#b-scan').addEventListener('click', () => { endIntro(); council.open(); ping(480, 0.05, 'triangle'); });
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => openDistrict(b.dataset.go)));
 $('#b-home').addEventListener('click', () => { endIntro(); closeDrawer(); flyTo(HOME.pos.clone(), HOME.target.clone()); });
@@ -228,7 +238,7 @@ document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click'
 wardenDock = bindWarden({ onClick: () => { endIntro(); council.open(); }, getMode: () => mode });
 
 /* ------------------------------ terminal ------------------------------ */
-const HELP = 'commands: scan <0x token> · go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · seat <n> · lore [grid|warden|swarm|oracle|council|programs|rogues|states|fragments|record] · fragment · stats · intro · home · clear';
+const HELP = 'commands: ops [matrix|radar|market|tape|intel|auto] · scan <0x token> · go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · seat <n> · lore [grid|warden|swarm|oracle|council|programs|rogues|states|fragments|record] · fragment · stats · intro · home · clear';
 $('#cmd').addEventListener('submit', e => {
   e.preventDefault();
   const inp = $('#cmd-in'); const [c, a] = inp.value.trim().toLowerCase().split(/\s+/); inp.value = '';
@@ -237,6 +247,7 @@ $('#cmd').addEventListener('submit', e => {
   else if (c === 'go') sysLine(openDistrict(a) ? `jacking into ${DISTRICTS[a].name}` : `unknown program "${a || ''}"`);
   else if (c === 'state' || c === 'mode') sysLine(setMode(a) ? `grid.state = ${a} (simulation)` : `unknown state "${a || ''}"`);
   else if (c === 'seat') { const i = data.S.seatOrder.indexOf(Number(a)); if (i >= 0 && i < agents.shown) { openSeat(i); sysLine(`locating seat #${a}`); } else sysLine(`seat #${a || '?'} is not on the grid right now`); }
+  else if (c === 'ops' || c === 'autopilot') { ops.open(c === 'autopilot' ? 'auto' : ['matrix', 'radar', 'market', 'tape', 'intel', 'auto'].includes(a) ? a : undefined); sysLine('opening ops.exe'); }
   else if (c === 'scan') { council.open(a && /^0x[0-9a-f]{40}$/.test(a) ? a : undefined); sysLine(a ? `council scanning ${a.slice(0, 8)}…` : 'opening scan.exe'); }
   else if (c === 'lore' || c === 'codex') { if (a && !codex.ids.includes(a)) sysLine(`no codex entry "${a}". try: ${codex.ids.join(' · ')}`); else { codex.open(a); sysLine(`opening codex${a ? ' › ' + a : ''}`); } }
   else if (c === 'fragment') sysLine(`recovered: "${FRAGMENTS[Math.floor(Math.random() * FRAGMENTS.length)]}" (fiction)`);

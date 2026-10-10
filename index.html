@@ -31,6 +31,7 @@
     <button data-go="hive">Nest</button>
     <button data-go="vault">Vault</button>
     <button data-go="ledger">Ledger</button>
+    <button class="nav-cx nav-ops" id="b-ops" aria-haspopup="dialog">Ops</button>
     <button class="nav-cx" id="b-scan" aria-haspopup="dialog">Scan</button>
     <button class="nav-cx" id="b-codex" aria-haspopup="dialog">Codex</button>
   </nav>
@@ -100,6 +101,16 @@
   </div>
 </div>
 
+<div class="codex ops" id="ops" role="dialog" aria-modal="true" aria-label="ops.exe: operations terminal" hidden>
+  <div class="cx-win">
+    <div class="cx-head"><span>ops.exe <em>· eight agents · paper autopilot</em></span>
+      <div class="ops-ctl"><select id="ops-net" aria-label="Network"></select><span id="ops-clock">starting…</span><button id="ops-run" class="mini">run now</button>
+      <button class="x cx-x" aria-label="Close operations terminal"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1 1 13" stroke="currentColor" stroke-width="1.6"/></svg></button></div></div>
+    <nav class="ops-tabs" id="ops-tabs" aria-label="Views"></nav>
+    <div class="ops-body" id="ops-body"></div>
+  </div>
+</div>
+
 <div class="warden-dock" id="warden-dock">
   <p class="wd-say" aria-live="polite"></p>
   <button class="wd-btn" aria-label="The Warden: open the scanner"><span class="wd-face"></span></button>
@@ -107,6 +118,7 @@
 
 <div class="acts">
   <button class="sq" id="b-mode" aria-label="Grid state" style="display:none"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5"/></svg></button>
+  <button class="sq sq-cx" id="b-ops-m" aria-label="Open the operations terminal"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13 6 8l3 3 5-7M2 2v12h12" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
   <button class="sq sq-cx" id="b-codex-m" aria-label="Open the codex"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h5l1 1 1-1h5v11H9l-1 1-1-1H2zM8 3v10" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
   <button class="cta" id="b-listen" aria-pressed="false"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg><span>Hear the grid</span></button>
   <button class="sq" id="b-home" aria-label="Reset view"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8 8 2l6 6M4 7v7h8V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
@@ -117,6 +129,7 @@
   <span><b id="r-agents">—</b> agents on the grid</span>
   <span>24h <b id="r-jobs">—</b> jobs · <b id="r-orc">—</b> oracle answers</span>
   <span id="r-upd">no data yet</span>
+  <button class="rail-ops" id="r-ops">ops starting…</button>
   <button class="qbtn" id="b-q">quality</button>
   <span class="disc">Independent community project. Not run or endorsed by Identity.md.</span>
 </footer>
