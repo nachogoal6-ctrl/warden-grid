@@ -29,6 +29,11 @@ const short = a => a.slice(0, 6) + '…' + a.slice(-4);
 const age = ms => { const d = (Date.now() - ms) / 864e5; return d < 1 ? Math.round(d * 24) + ' h' : d < 60 ? Math.round(d) + ' days' : Math.round(d / 30) + ' months'; };
 const big = hex => (hex && hex !== '0x') ? BigInt(hex) : null;
 
+// Site rule: no links to the imd.fun paid-jobs site (api.imd.fun / explorer.imd.fun are fine). Such URLs are shown as plain text.
+const NOLINK = /^https:\/\/(www\.)?imd\.fun(\/|$)/i;
+const linkOrText = u => { const label = esc(u.replace(/^https:\/\//, '').slice(0, 42));
+  return NOLINK.test(u) ? `<span class="nolink">${label}</span>` : `<a href="${esc(u)}" target="_blank" rel="noopener nofollow">${label}</a>`; };
+
 export const AGENTS = [
   { id: 'scout', name: 'SCOUT', job: 'markets & liquidity' },
   { id: 'risk', name: 'RISK', job: 'contract on-chain' },
@@ -135,7 +140,7 @@ export async function runScan(addr, { onStep } = {}) {
   else {
     const links = [...(info?.websites || []).map(w => ['web', w.url]), ...(info?.socials || []).map(s => [s.type, s.url])].filter(l => /^https:\/\//.test(l[1]));
     step('signal', 'done', links.length
-      ? `<ul class="lnk">${links.slice(0, 6).map(([t, u]) => `<li><span>${esc(t)}</span><a href="${esc(u)}" target="_blank" rel="noopener nofollow">${esc(u.replace(/^https:\/\//, '').slice(0, 42))}</a></li>`).join('')}</ul><p class="ssrc">Links as listed on DexScreener by the token's team. Not checked by the Grid.</p>`
+      ? `<ul class="lnk">${links.slice(0, 6).map(([t, u]) => `<li><span>${esc(t)}</span>${linkOrText(u)}</li>`).join('')}</ul><p class="ssrc">Links as listed on DexScreener by the token's team. Not checked by the Grid.</p>`
       : '<p>No website or socials listed on DexScreener.</p><p class="ssrc">Source: DexScreener</p>');
     if (!links.length) R.flags.push(['No links listed', 'no website or socials on DexScreener']);
   }

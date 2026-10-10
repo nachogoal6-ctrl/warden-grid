@@ -310,3 +310,4 @@ body.codex-open .warden-dock{display:none}
 .cx-portrait span{font:400 10px/1.3 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);max-width:110px;text-align:center}
 .cx-body code{font:400 12px var(--f-mono);color:var(--code)}
 @media (max-width:760px){.cx-portrait{float:none;margin:0 0 14px;justify-items:start}}
+.lnk .nolink{color:var(--ink)}
