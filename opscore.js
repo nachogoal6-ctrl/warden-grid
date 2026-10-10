@@ -69,7 +69,7 @@ function intel(kind, text, extra = {}) { O.intel.unshift({ at: Date.now(), kind,
 
 /* ------------------------------ agents ------------------------------ */
 export async function scout() {
-  const n = NETS[O.net]; agent('scout', 'working', '…');
+  const net0 = O.net, n = NETS[net0]; agent('scout', 'working', '…');
   const got = [];
   for (const kind of ['new_pools', 'trending_pools']) {
     try {
@@ -86,6 +86,7 @@ export async function scout() {
       }
     } catch (e) { intel('sys', `scout: GeckoTerminal ${kind.replace('_', ' ')} not reachable (${e.message})`); }
   }
+  if (O.net !== net0) return;     // network switched while fetching: drop these results
   // keep the most liquid pool per token
   const byTok = new Map(); for (const c of got) { const o = byTok.get(c.key); if (!o || (c.liq || 0) > (o.liq || 0)) byTok.set(c.key, { ...c, src: o && o.src !== c.src ? 'new+trending' : c.src }); }
   let fresh = 0;
@@ -292,18 +293,20 @@ export function stopAll() {
 }
 export function resetBook() { O.book = { cash: O.cfg.bank, pos: [], closed: [] }; save(); ping('book'); intel('auto', `paper account reset to ${usd(O.cfg.bank)}`); }
 export function setCfg(patch) { Object.assign(O.cfg, patch); save(); ping('book'); }
-export function setNet(n) { if (!NETS[n] || n === O.net) return; O.net = n; O.cands.clear(); O.tape = []; save(); intel('sys', `network → ${NETS[n].name}`); runCycle(); }
+export function setNet(n) { if (!NETS[n] || n === O.net) return; O.net = n; O.cands = new Map(); O.tape = []; save(); intel('sys', `network → ${NETS[n].name}`); runCycle(); }
 export function equity() { return O.book.cash + O.book.pos.reduce((s, p) => s + p.qty * p.last, 0); }
 
 /* ------------------------------ the cycle ------------------------------ */
+let rerun = false;
 export async function runCycle() {
-  if (O.running) return; O.running = true; ping('cycle');
+  if (O.running) { rerun = true; return; } O.running = true; rerun = false; ping('cycle');
   try {
     await scout(); momentum(); await risk(); await whale(); await social();
     const picks = decide();
     if (picks) intel('warden', `${picks} token${picks > 1 ? 's' : ''} over the threshold of ${O.cfg.minScore}`);
     autopilot(); exitCheck();
   } finally { O.running = false; O.cycleAt = Date.now(); O.nextAt = Date.now() + CYCLE_MS; ping('cycle'); }
+  if (rerun) runCycle();          // the network changed (or "run now" was pressed) while a cycle was running
 }
 let started = false;
 export function startOps() {
