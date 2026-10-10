@@ -20,14 +20,16 @@ export const DISTRICTS = {
 };
 export const DKEYS = Object.keys(DISTRICTS);
 
-export function buildCity(scene) {
+export function buildCity(scene, { reflectiveGround = false } = {}) {
   const anim = [];   // per-frame updaters
 
   /* ---------------- ground & horizon ---------------- */
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), groundMaterial());
-  ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  if (!reflectiveGround) {            // high quality builds a Reflector ground in main.js instead
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), groundMaterial());
+    ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  }
   const grid = new THREE.GridHelper(300, 75, 0x0f6b38, 0x06301a);
-  grid.position.y = 0.03; grid.material.transparent = true; grid.material.opacity = 0.5; scene.add(grid);
+  grid.position.y = 0.03; grid.material.transparent = true; grid.material.opacity = reflectiveGround ? 0.28 : 0.5; scene.add(grid);
 
   const skyMat = codeMaterial(G, { level: 0.5, cells: 1, base: 0x010402, fog: false, speed: 0.8, windows: 0, solid: 0 });
   skyMat.side = THREE.BackSide;
@@ -35,6 +37,8 @@ export function buildCity(scene) {
     const g = new THREE.CylinderGeometry(340, 340, 280, 96, 1, true);
     const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 180, uv.getY(i) * 74);
     const sky = new THREE.Mesh(g, skyMat); sky.position.y = 120; sky.renderOrder = -1; scene.add(sky);
+    skyMat.transparent = true; skyMat.blending = THREE.AdditiveBlending; skyMat.depthWrite = false;   // rain glows over the sky dome
+    skyMat.uniforms.base.value.set(0x000000); skyMat.uniforms.level.value = 0.32;
     skyMat.uniforms.reveal = { value: 999 };   // the horizon is always there
   }
 

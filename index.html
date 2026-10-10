@@ -6,6 +6,14 @@
 <meta name="description" content="Warden Grid: a city made of falling code, patrolled by the IMD swarm. $WARD, a Uniswap v4 hook that guards holders. Independent community project.">
 <meta name="theme-color" content="#010703">
 <title>Warden Grid</title>
+<link rel="icon" href="brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
+<meta property="og:title" content="Warden Grid · $WARD">
+<meta property="og:description" content="Eight AI agents read the market. Your agent trades inside your limits. A 3D city of falling code, live.">
+<meta property="og:image" content="https://warden-grid.vercel.app/brand/og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://warden-grid.vercel.app/brand/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
@@ -18,11 +26,33 @@
 <div id="labels"></div>
 <div id="tags"></div>
 <div id="tip" class="tip" hidden></div>
-<div id="title-card" class="title-card" aria-hidden="true"><b>WARDEN_GRID</b><span>$WARD · the swarm runs the city</span><em id="tc-frag"></em></div>
+<div id="title-card" class="title-card" aria-hidden="true"><svg class="tc-mark" width="72" height="72" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-tc-mark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-tc-mark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-tc-mark)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-tc-mark)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><b>WARDEN_GRID</b><span>$WARD · the swarm runs the city</span><em id="tc-frag"></em></div>
 
 <header class="top">
   <div class="brand">
-    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 27 8v8c0 6-5 10-12 12C8 26 3 22 3 16V8z" fill="none" stroke="#3dff8f" stroke-width="1.6"/><path d="M15 7v10a4 4 0 0 1-8 0" fill="none" stroke="#b4ffcb" stroke-width="1.9" stroke-linecap="square"/></svg>
+    <svg class="bm" width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-bm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-bm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-bm)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-bm)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg>
     <div><b>Warden_Grid<i>_</i></b><small>$WARD · the swarm runs the city</small></div>
   </div>
   <nav class="nav" aria-label="Programs">
@@ -131,10 +161,22 @@
   <span id="r-upd">no data yet</span>
   <button class="rail-ops" id="r-ops">ops starting…</button>
   <button class="qbtn" id="b-q">quality</button>
+  <a class="rail-brand" href="brand.html" target="_blank" rel="noopener">brand kit</a>
   <span class="disc">Independent community project. Not run or endorsed by Identity.md.</span>
 </footer>
 
-<div id="boot"><pre id="boot-t">&gt; loading the grid_</pre></div>
+<div id="boot"><div class="boot-in"><svg class="boot-mark" width="110" height="110" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-boot-mark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-boot-mark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-boot-mark)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-boot-mark)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><b class="boot-word">WARDEN_GRID</b><pre id="boot-t">&gt; loading the grid_</pre><i class="boot-bar"><span></span></i></div></div>
 
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}

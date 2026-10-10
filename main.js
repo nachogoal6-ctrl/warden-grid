@@ -6,6 +6,9 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+import { buildAtmos, REFLECT_SHADER } from './atmos.js';
 import { shared, FOG, FOG_DENSITY, G, ALARM, MINT } from './shaders.js';
 import { buildCity, DISTRICTS } from './city.js';
 import { buildAgents, MAX_AGENTS } from './agents.js';
@@ -55,7 +58,12 @@ controls.maxPolarAngle = Math.PI * 0.48; controls.minDistance = 5; controls.maxD
 controls.autoRotateSpeed = 0.3;
 
 /* ------------------------------ world ------------------------------ */
-const city = buildCity(scene);
+const city = buildCity(scene, { reflectiveGround: !LOW });
+const atmos = buildAtmos(scene, { low: LOW });
+if (!LOW) {   // wet ground with real reflections of the city (renders the scene a second time, at half resolution)
+  const ground = new Reflector(new THREE.PlaneGeometry(800, 800), { clipBias: 0.003, textureWidth: Math.round(innerWidth * 0.5), textureHeight: Math.round(innerHeight * 0.5), color: 0x777777, shader: REFLECT_SHADER });
+  ground.rotation.x = -Math.PI / 2; scene.add(ground);
+}
 const agents = buildAgents(scene);
 const swarm = buildSwarm(scene, LOW ? { flocks: 30, perFlock: 50 } : undefined);
 const fx = buildFx(scene, camera);
@@ -83,11 +91,19 @@ const finalPass = new ShaderPass({
       c *= 0.975 + 0.025*sin(uv.y*res.y*1.4);                   // faint scanlines
       c += (h(uv*res + time) - .5) * 0.008;                     // grain
       c *= smoothstep(1.15, 0.35, length(dir*vec2(1.1, 1.0)));   // vignette
+      // grade: deep green-teal shadows, mint highlights, gentle S-curve
+      float l = dot(c, vec3(.3,.59,.11));
+      c += vec3(0.0, 0.006, 0.004) * (1. - smoothstep(0.0, 0.25, l));
+      c = mix(c, c * vec3(0.94, 1.02, 0.97), smoothstep(0.35, 1.0, l));
+      c = pow(max(c, 0.), vec3(1.06)); c = mix(c, clamp(c,0.,1.)*clamp(c,0.,1.)*(3.-2.*clamp(c,0.,1.)), 0.18);
       gl_FragColor = vec4(c, 1.);
     }`,
 });
 composer.addPass(finalPass);
 composer.addPass(new OutputPass());
+const fxaa = new ShaderPass(FXAAShader);
+const setFxaa = () => fxaa.material.uniforms.resolution.value.set(1 / (innerWidth * renderer.getPixelRatio()), 1 / (innerHeight * renderer.getPixelRatio()));
+setFxaa(); composer.addPass(fxaa);
 
 /* ------------------------------ camera: cinematic intro and flights ------------------------------ */
 const introPath = new THREE.CatmullRomCurve3([
@@ -337,7 +353,7 @@ function adapt(dt) {
   let next = pr;
   if (fps < 32 && pr > 0.6) next = Math.max(0.6, pr - 0.2);
   else if (fps > 56 && pr < MAX_PR) next = Math.min(MAX_PR, pr + 0.1);
-  if (next !== pr) { pr = next; renderer.setPixelRatio(pr); composer.setPixelRatio(pr); }
+  if (next !== pr) { pr = next; renderer.setPixelRatio(pr); composer.setPixelRatio(pr); setFxaa(); }
 }
 
 /* ------------------------------ loop ------------------------------ */
@@ -370,6 +386,7 @@ function frame() {
   sceneTick(dt);
   fx.update(dt * sp); fx.placeTags(dt);
   for (const f of city.anim) f(T, dt * sp, mode);
+  atmos.update(T);
   agents.update(T, dt * sp, mode);
   warden.update(T, dt * sp, mode);
 
@@ -380,7 +397,7 @@ function frame() {
 }
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight; camera.fov = portrait() ? 64 : 52; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); finalPass.uniforms.res.value.set(innerWidth, innerHeight);
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); finalPass.uniforms.res.value.set(innerWidth, innerHeight); setFxaa();
 });
 
 /* ------------------------------ boot ------------------------------ */

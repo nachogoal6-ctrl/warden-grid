@@ -22,6 +22,8 @@ Independent community project. Not run or endorsed by Identity.md.
 - `council.js` — panel de scan.exe y el avatar del Warden (frases a partir del estado real).
 - `opscore.js` — motor de ops.exe sin dependencias del navegador (agentes, puntuación, autopiloto en papel, direcciones verificadas por red). Lo usa también el bot `warden-keeper` (copia idéntica).
 - `livevault.js` — pestaña Live vault: el dueño crea y gestiona su WardenVault (depositar, límites, keeper, pausa, retirar) firmando en su wallet. viem se carga de jsdelivr al abrirla.
+- `atmos.js` — atmósfera: cielo con horizonte luminoso, skyline lejano, haces de luz, focos que barren desde la Gate, partículas, y el suelo mojado con reflejos reales (solo en calidad alta).
+- `brand/` + `brand.html` — marca: emblema del Warden (SVG y PNG), versión monocolor, lockup, mascota pixel, tarjeta para redes y página de marca.
 - `ops.js` — vistas de ops.exe: 8 agentes (scout, risk, whale, momentum, social, dev, exit, warden), radar con puntuación transparente, mercado, operaciones grandes, intel y autopiloto en papel (precios reales, operaciones simuladas).
 - `opsui.js` — ventana de ops.exe (pestañas, red, reloj de ciclo, controles del autopiloto).
 - `avatar.js` — avatar pixel del Warden y sigilos pixel deterministas por dirección o seat.

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warden Grid · Brand kit</title>
+<link rel="icon" href="brand/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--void:#010402;--ink:#9ff5bd;--dim:#3f8f5d;--code:#3dff8f;--hot:#b4ffcb;--deep:#21b864;--line:rgba(61,255,143,.18)}
+*{box-sizing:border-box} body{margin:0;background:var(--void);color:var(--ink);font:400 14px/1.6 "IBM Plex Mono",monospace}
+a{color:var(--code)}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 16px 80px}
+header{display:flex;align-items:center;gap:18px;margin-bottom:40px}
+header b{font:400 30px "Share Tech Mono",monospace;letter-spacing:.18em;color:var(--code);text-shadow:0 0 18px rgba(61,255,143,.5)}
+header span{display:block;color:var(--dim);font-size:12px;letter-spacing:.1em}
+h2{font:400 14px "Share Tech Mono",monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:8px;margin:44px 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{border:1px solid var(--line);padding:18px;display:grid;justify-items:center;gap:12px;background:linear-gradient(180deg,rgba(61,255,143,.04),transparent 50%)}
+.card.light{background:#e9f5ec;color:#0b3a20} .card.light p{color:#21613a}
+.card p{margin:0;font-size:12px;color:var(--dim);text-align:center}
+.card img{max-width:100%;height:auto}
+.lock{display:flex;align-items:center;gap:22px;justify-content:center;padding:28px;border:1px solid var(--line);flex-wrap:wrap}
+.lock b{font:400 clamp(28px,6vw,54px) "Share Tech Mono",monospace;letter-spacing:.14em;color:var(--code);text-shadow:0 0 20px rgba(61,255,143,.5)}
+.lock span{display:block;color:var(--hot);font-size:13px;letter-spacing:.08em}
+.sw{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sw div{border:1px solid var(--line);padding:10px} .sw i{display:block;height:70px;margin-bottom:8px;border:1px solid rgba(255,255,255,.06)}
+.sw b{display:block;color:var(--ink);font-weight:500} .sw span{font-size:12px;color:var(--dim)}
+.type{display:grid;gap:12px} .type div{border:1px solid var(--line);padding:14px}
+.dl{display:flex;flex-wrap:wrap;gap:8px} .dl a{border:1px solid var(--code);padding:9px 14px;text-decoration:none;font:400 13px "Share Tech Mono",monospace;letter-spacing:.1em;text-transform:uppercase}
+.dl a:hover{background:var(--code);color:var(--void)}
+ul.rules{padding-left:18px} ul.rules li{margin:4px 0}
+footer{margin-top:50px;color:var(--dim);font-size:11px}
+</style></head><body><div class="wrap">
+<header><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-h)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-h)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><div><b>WARDEN_GRID</b><span>BRAND KIT · $WARD</span></div></header>
+<p>The mark is <b>the Warden</b>: a hooded sentinel inside a shield, visor lit, a W on its chest. It is the keeper of the Gate in the Grid's lore, and the face of every agent. Original artwork for this project.</p>
+
+<h2>Logo</h2>
+<div class="grid">
+  <div class="card"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-a)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-a)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><p>Primary mark · on dark</p></div>
+  <div class="card light"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-b)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-b)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><p>Primary mark · on light</p></div>
+  <div class="card"><svg width="160" height="160" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="#3dff8f" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="#3dff8f"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#3dff8f" stroke-width="0"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#3dff8f"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><p>One colour · #3dff8f</p></div>
+  <div class="card"><div style="display:flex;gap:14px;align-items:end"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-d)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-d)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-e)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-e)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><svg width="16" height="16" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-f)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-f)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg></div><p>Holds up from 16 px (favicon) to billboard</p></div>
+</div>
+
+<h2>Lockup</h2>
+<div class="lock"><svg width="96" height="96" viewBox="0 0 64 64" aria-hidden="true">  <!-- Warden Grid mark: a hooded sentinel inside a shield. Original design for this project. -->
+  <defs>
+    <linearGradient id="wg-edge-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4ffcb"/><stop offset="1" stop-color="#21b864"/></linearGradient>
+    <linearGradient id="wg-body-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff8f"/><stop offset=".55" stop-color="#21b864"/><stop offset="1" stop-color="#0f6b38"/></linearGradient>
+  </defs>
+  <path d="M32 3 57 12.5V32c0 14.5-10.6 24-25 29C17.6 56 7 46.5 7 32V12.5Z" fill="#020a05" stroke="url(#wg-edge-g)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M32 9.5 44.5 24.5V34l7.5 7.8v4.6C47 52.2 40.2 56 32 58.6 23.8 56 17 52.2 12 46.4v-4.6l7.5-7.8v-9.5Z" fill="url(#wg-body-g)"/>
+  <path d="M32 9.5 19.5 24.5V34" fill="none" stroke="#d8ffe4" stroke-width="1.1" opacity=".7"/>
+  <path d="M23.6 25.5h16.8v8.6l-4 4.2h-8.8l-4-4.2Z" fill="#010402"/>
+  <rect x="25.4" y="29" width="13.2" height="3.1" fill="#f0fff5"/>
+  <path d="M25.2 45.6 28.6 49.4 32 45.6 35.4 49.4 38.8 45.6" fill="none" stroke="#020a05" stroke-width="2.3" stroke-linecap="square"/>
+</svg><div><b>WARDEN_GRID</b><span>the swarm runs the city</span></div></div>
+
+<h2>Mascot</h2>
+<div class="grid"><div class="card"><img src="brand/mascot.png" width="160" alt="The Warden pixel mascot"><p>Pixel Warden · used for the in-app guide and avatars. Same character as the logo.</p></div>
+<div class="card"><img src="brand/og.png" alt="Social card"><p>Social card · 1200 × 630</p></div></div>
+
+<h2>Colour</h2>
+<div class="sw">
+  <div><i style="background:#010402"></i><b>Void</b><span>#010402 · background</span></div>
+  <div><i style="background:#3dff8f"></i><b>Code</b><span>#3dff8f · primary</span></div>
+  <div><i style="background:#b4ffcb"></i><b>Hot</b><span>#b4ffcb · highlights</span></div>
+  <div><i style="background:#21b864"></i><b>Deep</b><span>#21b864 · secondary</span></div>
+  <div><i style="background:#9ff5bd"></i><b>Ink</b><span>#9ff5bd · text</span></div>
+  <div><i style="background:#ff4f5e"></i><b>Alarm</b><span>#ff4f5e · Breach only</span></div>
+</div>
+
+<h2>Type</h2>
+<div class="type">
+  <div><span style="font:400 34px 'Share Tech Mono',monospace;letter-spacing:.12em;color:var(--code)">SHARE TECH MONO</span><br><span style="color:var(--dim);font-size:12px">Display · titles, labels, the wordmark (uppercase, wide tracking)</span></div>
+  <div><span style="font:400 20px 'IBM Plex Mono',monospace">IBM Plex Mono · data, logs, body text</span><br><span style="color:var(--dim);font-size:12px">Body · numbers always from a cited source</span></div>
+</div>
+
+<h2>Use it well</h2>
+<ul class="rules">
+  <li>Keep clear space around the mark of at least a quarter of its width.</li>
+  <li>Don't recolour the mark outside the palette, rotate it, stretch it, or add effects other than a green glow.</li>
+  <li>Green on near-black is the default. Use the one-colour mark on busy backgrounds.</li>
+  <li>Red is reserved for the Breach state.</li>
+</ul>
+
+<h2>Downloads</h2>
+<div class="dl">
+  <a href="brand/mark.svg" download>mark.svg</a><a href="brand/mark-mono.svg" download>mark-mono.svg</a>
+  <a href="brand/mark-512.png" download>mark 512 png</a><a href="brand/lockup.png" download>lockup png</a>
+  <a href="brand/mascot.png" download>mascot png</a><a href="brand/og.png" download>social card</a>
+</div>
+<footer>Independent community project. Not run or endorsed by Identity.md. · <a href="./">back to the Grid</a></footer>
+</div></body></html>
