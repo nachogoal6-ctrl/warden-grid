@@ -20,7 +20,9 @@ Independent community project. Not run or endorsed by Identity.md.
 - `codex.js` — el Codex: lore de la ciudad por capítulos (con bloques "on record" que separan ficción y datos reales).
 - `scan.js` — scan.exe: el Consejo revisa un token (mercados, contrato, tickers copiados, enlaces). Solo hechos con fuente, sin puntuación ni señales.
 - `council.js` — panel de scan.exe y el avatar del Warden (frases a partir del estado real).
-- `ops.js` — ops.exe: 8 agentes (scout, risk, whale, momentum, social, dev, exit, warden), radar con puntuación transparente, mercado, operaciones grandes, intel y autopiloto en papel (precios reales, operaciones simuladas).
+- `opscore.js` — motor de ops.exe sin dependencias del navegador (agentes, puntuación, autopiloto en papel, direcciones verificadas por red). Lo usa también el bot `warden-keeper` (copia idéntica).
+- `livevault.js` — pestaña Live vault: el dueño crea y gestiona su WardenVault (depositar, límites, keeper, pausa, retirar) firmando en su wallet. viem se carga de jsdelivr al abrirla.
+- `ops.js` — vistas de ops.exe: 8 agentes (scout, risk, whale, momentum, social, dev, exit, warden), radar con puntuación transparente, mercado, operaciones grandes, intel y autopiloto en papel (precios reales, operaciones simuladas).
 - `opsui.js` — ventana de ops.exe (pestañas, red, reloj de ciclo, controles del autopiloto).
 - `avatar.js` — avatar pixel del Warden y sigilos pixel deterministas por dirección o seat.
 - `vercel.json` — config de Vercel (estático).

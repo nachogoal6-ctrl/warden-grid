@@ -1,8 +1,9 @@
 // Warden Grid — ops.exe window: tabs over the views in ops.js, network switch, cycle clock, autopilot controls.
 import { $, esc } from './ui.js';
+import { mountLive } from './livevault.js';
 import { O, NETS, views, onOps, runCycle, setNet, setCfg, stopAll, resetBook, closePos, startOps, equity, usd } from './ops.js';
 
-const TABS = [['matrix', 'Agents'], ['radar', 'Radar'], ['market', 'Market'], ['tape', 'Large trades'], ['intel', 'Intel'], ['auto', 'Autopilot']];
+const TABS = [['matrix', 'Agents'], ['radar', 'Radar'], ['market', 'Market'], ['tape', 'Large trades'], ['intel', 'Intel'], ['auto', 'Autopilot'], ['live', 'Live vault']];
 
 export function bindOps({ onEvent } = {}) {
   const box = $('#ops'), body = $('#ops-body'), tabs = $('#ops-tabs'), net = $('#ops-net'), clock = $('#ops-clock');
@@ -12,6 +13,7 @@ export function bindOps({ onEvent } = {}) {
   const typing = () => box.contains(document.activeElement) && document.activeElement.matches('input');
   function render(force) {
     if (box.hidden) return; if (!force && tab === 'auto' && typing()) return;
+    if (tab === 'live') { if (!force) return; tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.tab === tab))); body.innerHTML = '<div id="lv-root"></div>'; mountLive(body.firstChild); return; }
     tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.tab === tab)));
     const y = body.scrollTop; body.innerHTML = views[tab](); body.scrollTop = y;
   }

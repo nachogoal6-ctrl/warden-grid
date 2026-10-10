@@ -385,3 +385,20 @@ table.rd{width:100%;border-collapse:collapse;font-size:12px}
 @media (max-width:900px){ .mx{grid-template-columns:repeat(2,1fr)} .mk,.ap-cfg{grid-template-columns:repeat(2,1fr)} .dexl{grid-template-columns:1fr 1fr} }
 @media (max-width:760px){ .ops .cx-win{height:calc(100dvh - 58px)} .ops-ctl #ops-clock{display:none} .ops-body{padding:14px 12px 24px} .rd td.why{display:none} .rd{font-size:11px}
   .mx{grid-template-columns:1fr} .rail-ops{display:none} .rules li{grid-template-columns:1fr} .intel li{grid-template-columns:60px 1fr} .intel .k{display:none} }
+
+/* ---------------- live vault ---------------- */
+.lv-net{background:var(--void);color:var(--code);border:1px solid var(--line);font:400 12px var(--f-mono);padding:9px 8px}
+.lv-msg{padding:8px 12px;border:1px solid var(--line);color:var(--hot);overflow-wrap:anywhere} .lv-msg a{color:var(--code)}
+.lv-grid{display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:12px;margin-top:12px}
+.lv-card{border:1px solid var(--line);padding:14px;background:rgba(0,0,0,.25);min-width:0}
+.lv-card h4{margin:0 0 10px;font:400 13px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--code)}
+.lv-card form{display:grid;gap:8px;margin-bottom:10px}
+.lv-card label{display:grid;gap:4px} .lv-card label span,.lv-lim span{font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.lv-card input{background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--hot);font:400 12.5px var(--f-mono);padding:7px 8px;min-width:0}
+.lv-card button:not(.mini):not(.ap-stop){border:1px solid var(--code);background:rgba(61,255,143,.1);color:var(--code);padding:9px;font:400 12px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase}
+.lv-card button:disabled{opacity:.4;cursor:not-allowed}
+.lv-card .rows{margin:8px 0}
+.lv-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.lv-acts form{display:flex;gap:6px;margin:0} .lv-acts .ap-stop{padding:8px 12px;font-size:11.5px}
+.lv-lim{display:flex!important;flex-wrap:wrap;gap:6px;align-items:center} .lv-lim input{width:110px}
+@media (max-width:900px){ .lv-grid{grid-template-columns:1fr} }

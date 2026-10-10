@@ -238,7 +238,7 @@ document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click'
 wardenDock = bindWarden({ onClick: () => { endIntro(); council.open(); }, getMode: () => mode });
 
 /* ------------------------------ terminal ------------------------------ */
-const HELP = 'commands: ops [matrix|radar|market|tape|intel|auto] · scan <0x token> · go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · seat <n> · lore [grid|warden|swarm|oracle|council|nightshift|programs|rogues|states|fragments|record] · fragment · stats · intro · home · clear';
+const HELP = 'commands: ops [matrix|radar|market|tape|intel|auto|live] · scan <0x token> · go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · seat <n> · lore [grid|warden|swarm|oracle|council|nightshift|programs|rogues|states|fragments|record] · fragment · stats · intro · home · clear';
 $('#cmd').addEventListener('submit', e => {
   e.preventDefault();
   const inp = $('#cmd-in'); const [c, a] = inp.value.trim().toLowerCase().split(/\s+/); inp.value = '';
@@ -247,7 +247,7 @@ $('#cmd').addEventListener('submit', e => {
   else if (c === 'go') sysLine(openDistrict(a) ? `jacking into ${DISTRICTS[a].name}` : `unknown program "${a || ''}"`);
   else if (c === 'state' || c === 'mode') sysLine(setMode(a) ? `grid.state = ${a} (simulation)` : `unknown state "${a || ''}"`);
   else if (c === 'seat') { const i = data.S.seatOrder.indexOf(Number(a)); if (i >= 0 && i < agents.shown) { openSeat(i); sysLine(`locating seat #${a}`); } else sysLine(`seat #${a || '?'} is not on the grid right now`); }
-  else if (c === 'ops' || c === 'autopilot') { ops.open(c === 'autopilot' ? 'auto' : ['matrix', 'radar', 'market', 'tape', 'intel', 'auto'].includes(a) ? a : undefined); sysLine('opening ops.exe'); }
+  else if (c === 'ops' || c === 'autopilot') { ops.open(c === 'autopilot' ? 'auto' : ['matrix', 'radar', 'market', 'tape', 'intel', 'auto', 'live'].includes(a) ? a : undefined); sysLine('opening ops.exe'); }
   else if (c === 'scan') { council.open(a && /^0x[0-9a-f]{40}$/.test(a) ? a : undefined); sysLine(a ? `council scanning ${a.slice(0, 8)}…` : 'opening scan.exe'); }
   else if (c === 'lore' || c === 'codex') { if (a && !codex.ids.includes(a)) sysLine(`no codex entry "${a}". try: ${codex.ids.join(' · ')}`); else { codex.open(a); sysLine(`opening codex${a ? ' › ' + a : ''}`); } }
   else if (c === 'fragment') sysLine(`recovered: "${FRAGMENTS[Math.floor(Math.random() * FRAGMENTS.length)]}" (fiction)`);
