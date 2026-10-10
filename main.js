@@ -13,6 +13,9 @@ import { buildSwarm } from './swarm.js';
 import { buildFx } from './fx.js';
 import { buildWarden } from './warden.js';
 import * as data from './data.js';
+import { bindCodex, FRAGMENTS } from './codex.js';
+import { bindCouncil, bindWarden } from './council.js';
+import { sigilSVG } from './avatar.js';
 import { $, fmt, esc, hhmm, makeContent, pushFeed, sysLine, renderStats, updAge, buildLabels, ping, bindSound } from './ui.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -91,7 +94,7 @@ const introPath = new THREE.CatmullRomCurve3([
   new THREE.Vector3(10, 66, 18), HOME.pos.clone(),
 ], false, 'centripetal');
 let intro = null, fly = null;
-function startIntro() { intro = { t: 0, dur: 13, t0: performance.now() }; controls.enabled = false; shared.reveal.value = 0; const tc = $('#title-card'); tc.classList.remove('play'); void tc.offsetWidth; tc.classList.add('play'); }
+function startIntro() { intro = { t: 0, dur: 13, t0: performance.now() }; controls.enabled = false; shared.reveal.value = 0; const tc = $('#title-card'); $('#tc-frag').textContent = '// ' + FRAGMENTS[Math.floor(Math.random() * FRAGMENTS.length)]; tc.classList.remove('play'); void tc.offsetWidth; tc.classList.add('play'); }
 function endIntro() {
   if (!intro) return; intro = null; controls.enabled = true; shared.reveal.value = 999;
   camera.position.copy(HOME.pos); controls.target.copy(HOME.target); controls.autoRotate = !reduced; $('#skip').hidden = true; $('#title-card').classList.remove('play');
@@ -109,7 +112,12 @@ controls.addEventListener('start', () => { controls.autoRotate = false; fly = nu
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 /* ------------------------------ drawer ------------------------------ */
-const CONTENT = makeContent({ agents, cap: AGENT_CAP });
+const BASE_CONTENT = makeContent({ agents, cap: AGENT_CAP });
+// every program file ends with a link to its Codex chapter
+const CX_FOR = { hook: 'warden', oracle: 'oracle', hive: 'swarm' };
+const CONTENT = Object.fromEntries(Object.entries(BASE_CONTENT).map(([k, f]) => [k, () => f() +
+  `<button class="cx-link" data-open-cx="${CX_FOR[k] || 'programs'}">read the codex entry ›</button>` +
+  (k === 'hook' ? `<button class="cx-link" data-open-cx="rogues">rogue program dossiers ›</button>` : '')]));
 let openKey = null;
 function showDrawer(code, title, html) {
   $('#d-code').textContent = code; $('#d-title').textContent = title; $('#d-body').innerHTML = html;
@@ -122,7 +130,20 @@ function openDistrict(k) {
 }
 function closeDrawer() { openKey = null; const dr = $('#drawer'); dr.classList.remove('open'); dr.setAttribute('aria-hidden', 'true'); document.body.classList.remove('drawer-open'); }
 $('#d-x').addEventListener('click', closeDrawer);
-addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') { if (council.isOpen()) council.close(); else if (codex.isOpen()) codex.close(); else closeDrawer(); } });
+const codex = bindCodex({ onGo: k => openDistrict(k) });
+['#b-codex', '#b-codex-m'].forEach(id => $(id).addEventListener('click', () => { endIntro(); codex.open(); ping(480, 0.05, 'triangle'); }));
+$('#d-body').addEventListener('click', e => { const b = e.target.closest('[data-open-cx]'); if (b) codex.open(b.dataset.openCx); });
+// scan.exe: while the council works, units walk to the Gate and packets fly in; the oracle flares when the report is ready
+const council = bindCouncil({
+  onStart: () => {
+    for (let n = 0; n < Math.min(12, agents.shown); n++) { const i = Math.floor(Math.random() * agents.shown); agents.dispatch(i, 'hook'); const u = agents.units[i]; fx.spawn({ from: V(u.x, 3, u.z), to: dpos('hook', 24), color: '#3dff8f', dur: 1.6 + Math.random(), arc: 12, size: 3 }); }
+    ping(500, 0.05, 'triangle');
+  },
+  onAgent: (id, state) => { if (state === 'done') { fx.spawn({ from: dpos('hook', 30), to: dpos(id === 'risk' ? 'ledger' : id === 'mirror' ? 'loyalty' : 'oracle', 40), color: '#b4ffcb', dur: 1.4, arc: 18, size: 3.6 }); ping(640 + Math.random() * 200, 0.04); } },
+  onDone: R => { city.extra.oracle.flare = 1; if (!wardenDock) return; fx.tag(dpos('hook', 34), `scan · ${R.facts.symbol || 'token'} · ${R.flags.length} flag${R.flags.length === 1 ? '' : 's'}`); wardenDock.say(R.flags.length ? `${R.flags.length} flag${R.flags.length === 1 ? '' : 's'} on ${R.facts.symbol || 'that token'}. read them before you decide anything.` : `no flags on ${R.facts.symbol || 'that token'} from these checks. that is not the same as safe.`); },
+});
+$('#b-scan').addEventListener('click', () => { endIntro(); council.open(); ping(480, 0.05, 'triangle'); });
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => openDistrict(b.dataset.go)));
 $('#b-home').addEventListener('click', () => { endIntro(); closeDrawer(); flyTo(HOME.pos.clone(), HOME.target.clone()); });
 const refreshDrawer = () => { if (openKey) $('#d-body').innerHTML = CONTENT[openKey](); };
@@ -161,7 +182,7 @@ function openSeat(i) {
   const s = data.getSeat(tokenId);
   if (s) {
     const rate = s.attempts ? Math.round(s.accepted / s.attempts * 100) + '%' : null;
-    $('#d-body').innerHTML = `<p class="lore">one of the swarm. this unit stands for seat ${esc(tokenId)}.</p>
+    $('#d-body').innerHTML = `<div class="seat-sig">${sigilSVG('seat:' + tokenId, 54)}<p class="lore">one of the swarm. this unit stands for seat ${esc(tokenId)}. its sigil is drawn from its seat number.</p></div>
       <div><p class="sect">Record</p><div class="grid3">
         <div class="kv"><span>Accepted</span><strong>${fmt(s.accepted)}</strong></div>
         <div class="kv"><span>Rejected</span><strong>${fmt(s.rejected)}</strong></div>
@@ -185,7 +206,7 @@ const MODES = {
   buyback: { text: 'Burn cycle. The price sits under its 30-day median, as the oracle panel attests. Stored tolls buy tokens back and the furnace deletes them for good.', note: 'Planned mechanism, shown as a simulation. No buybacks have happened.' },
   milestone: { text: 'Unlock. The agent panel has verified a public milestone from sources fixed in advance, so the vault door opens for one tranche of the team\'s tokens. Only that one.', note: 'Planned mechanism, shown as a simulation. No milestone has been attested yet.' },
 };
-let mode = 'calm', glitch = 0;
+let mode = 'calm', glitch = 0, wardenDock = null;
 function setMode(m) {
   if (!MODES[m]) return false;
   mode = m;
@@ -198,14 +219,16 @@ function setMode(m) {
   scene.fog.color.set(m === 'panic' ? 0x0a0203 : 0x010803);
   swarm.mat.uniforms.boost.value = m === 'panic' ? 2.2 : 1;
   if (m === 'panic') glitch = 1;
+  wardenDock?.paint();
   if (m === 'milestone') { flyDistrict('vault'); [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => ping(f, 0.06, 'triangle', 1.2), i * 140)); }
   if (m === 'buyback') flyDistrict('furnace');
   return true;
 }
 document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { endIntro(); setMode(b.dataset.mode); ping(660); }));
+wardenDock = bindWarden({ onClick: () => { endIntro(); council.open(); }, getMode: () => mode });
 
 /* ------------------------------ terminal ------------------------------ */
-const HELP = 'commands: go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · seat <n> · stats · intro · home · clear';
+const HELP = 'commands: scan <0x token> · go <hook|oracle|hive|vault|furnace|ledger|loyalty> · state <calm|panic|buyback|milestone> · seat <n> · lore [grid|warden|swarm|oracle|council|programs|rogues|states|fragments|record] · fragment · stats · intro · home · clear';
 $('#cmd').addEventListener('submit', e => {
   e.preventDefault();
   const inp = $('#cmd-in'); const [c, a] = inp.value.trim().toLowerCase().split(/\s+/); inp.value = '';
@@ -214,6 +237,9 @@ $('#cmd').addEventListener('submit', e => {
   else if (c === 'go') sysLine(openDistrict(a) ? `jacking into ${DISTRICTS[a].name}` : `unknown program "${a || ''}"`);
   else if (c === 'state' || c === 'mode') sysLine(setMode(a) ? `grid.state = ${a} (simulation)` : `unknown state "${a || ''}"`);
   else if (c === 'seat') { const i = data.S.seatOrder.indexOf(Number(a)); if (i >= 0 && i < agents.shown) { openSeat(i); sysLine(`locating seat #${a}`); } else sysLine(`seat #${a || '?'} is not on the grid right now`); }
+  else if (c === 'scan') { council.open(a && /^0x[0-9a-f]{40}$/.test(a) ? a : undefined); sysLine(a ? `council scanning ${a.slice(0, 8)}…` : 'opening scan.exe'); }
+  else if (c === 'lore' || c === 'codex') { if (a && !codex.ids.includes(a)) sysLine(`no codex entry "${a}". try: ${codex.ids.join(' · ')}`); else { codex.open(a); sysLine(`opening codex${a ? ' › ' + a : ''}`); } }
+  else if (c === 'fragment') sysLine(`recovered: "${FRAGMENTS[Math.floor(Math.random() * FRAGMENTS.length)]}" (fiction)`);
   else if (c === 'stats') { const h = data.S.swarm?.health; sysLine(h ? `${fmt(h.agentsOnline)} online · ${fmt(h.workingNow)} working · ${fmt(h.jobsDoneLastDay)} jobs/24h` : 'no data'); }
   else if (c === 'intro') { closeDrawer(); startIntro(); $('#skip').hidden = false; }
   else if (c === 'home') { closeDrawer(); flyTo(HOME.pos.clone(), HOME.target.clone()); sysLine('back to the skyline'); }
@@ -267,7 +293,8 @@ data.on('block', ({ block, live }) => {
   $('#c-blk').textContent = fmt(block);
   if (live) { shared.wave.value = 0.01; city.extra.ledger.pulse = 1; ping(330, 0.04, 'sine', 1.2); }
 });
-data.on('price', p => { $('#c-imd').textContent = '$' + p.toFixed(4); });
+data.on('price', p => { $('#c-imd').textContent = '$' + p.toFixed(4); const ch = data.S.imdCh24; const el = $('#c-imd-ch'); el.textContent = ch == null ? '' : (ch > 0 ? '+' : '') + ch.toFixed(1) + '%'; el.className = ch < 0 ? 'neg' : 'pos'; });
+data.on('gas', g => { $('#c-gas').textContent = g < 1 ? g.toFixed(2) : g < 10 ? g.toFixed(1) : Math.round(g); });
 setInterval(updAge, 1000);
 
 /* ------------------------------ grid-state scenes (simulation) ------------------------------ */

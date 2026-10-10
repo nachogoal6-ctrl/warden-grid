@@ -2,6 +2,7 @@
 //   IMD network:  https://api.imd.fun/swarm            (public, open CORS — imd docs "Agents and seats")
 //   Seat records: the `seats` and `owners` fields of /swarm
 //   Block height: eth_blockNumber on https://ethereum-rpc.publicnode.com (public RPC, no key)
+//   Gas price:    eth_gasPrice on the same RPC
 //   IMD price:    https://api.dexscreener.com/latest/dex/tokens/0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7
 // When a source can't be reached the page says "no data".
 export const IMD = '0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7';
@@ -43,6 +44,10 @@ export async function pollBlock() {
     const b = parseInt(j.result, 16);
     if (b && b !== S.block) { const had = S.block != null; S.block = b; emit('block', { block: b, live: had }); }
   } catch {}
+  try {
+    const j = await getJSON('https://ethereum-rpc.publicnode.com', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'eth_gasPrice', params: [] }) });
+    const gwei = parseInt(j.result, 16) / 1e9; if (gwei > 0) { S.gas = gwei; emit('gas', gwei); }
+  } catch {}
 }
 
 export async function pollPrice() {
@@ -50,7 +55,7 @@ export async function pollPrice() {
     const j = await getJSON(`https://api.dexscreener.com/latest/dex/tokens/${IMD}`);
     const pairs = (j.pairs || []).filter(p => p.baseToken?.address?.toLowerCase() === IMD && p.priceUsd);
     pairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0));
-    if (pairs[0]) { S.imdUsd = Number(pairs[0].priceUsd); emit('price', S.imdUsd); }
+    if (pairs[0]) { S.imdUsd = Number(pairs[0].priceUsd); S.imdCh24 = pairs[0].priceChange?.h24 ?? null; emit('price', S.imdUsd); }
   } catch {}
 }
 

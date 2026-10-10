@@ -10,7 +10,7 @@ export function buildWarden(scene, { x = 0, y = 47, z = 0, scale = 1.25 } = {}) 
   const root = new THREE.Group(); root.position.set(x, y, z); root.scale.setScalar(scale); scene.add(root);
 
   // hologram material: the code shader, additive and see-through
-  const holo = codeMaterial(G, { level: 2.4, cells: 3, base: 0x020d06, speed: 1.4 });
+  const holo = codeMaterial(G, { level: 2.4, cells: 3, base: 0x020d06, speed: 1.4, gset: 3, windows: 0 });
   holo.transparent = true; holo.blending = THREE.AdditiveBlending; holo.depthWrite = false; holo.side = THREE.DoubleSide;
   const lines = glowMaterial(G, { intensity: 1.8, transparent: true, opacity: 0.85, additive: true });
 

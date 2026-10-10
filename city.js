@@ -1,7 +1,7 @@
 // Warden Grid — the city: ground, sky wall, filler blocks, data cables and the seven programs (districts).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { codeMaterial, glowMaterial, codeUV, box, shared, G, HOT, MINT, FOG, FOG_DENSITY } from './shaders.js';
+import { codeMaterial, glowMaterial, groundMaterial, codeUV, box, shared, G, HOT, MINT, FOG, FOG_DENSITY } from './shaders.js';
 
 let seed = 4242; export const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 
@@ -24,13 +24,12 @@ export function buildCity(scene) {
   const anim = [];   // per-frame updaters
 
   /* ---------------- ground & horizon ---------------- */
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(800, 800),
-    new THREE.MeshStandardMaterial({ color: 0x010d06, roughness: 0.16, metalness: 0.92 }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), groundMaterial());
   ground.rotation.x = -Math.PI / 2; scene.add(ground);
   const grid = new THREE.GridHelper(300, 75, 0x0f6b38, 0x06301a);
   grid.position.y = 0.03; grid.material.transparent = true; grid.material.opacity = 0.5; scene.add(grid);
 
-  const skyMat = codeMaterial(G, { level: 0.5, cells: 1, base: 0x010402, fog: false, speed: 0.8 });
+  const skyMat = codeMaterial(G, { level: 0.5, cells: 1, base: 0x010402, fog: false, speed: 0.8, windows: 0 });
   skyMat.side = THREE.BackSide;
   {
     const g = new THREE.CylinderGeometry(340, 340, 280, 96, 1, true);
@@ -60,7 +59,7 @@ export function buildCity(scene) {
   // 0x01 THE GATE — the hook: a portal every trade passes through, with the hook ring turning inside it
   {
     const k = 'hook', d = DISTRICTS[k], grp = group(k), em = mkEdge(k);
-    const mat = codeMaterial(d.color, { level: 1.8, base: 0x031208 });
+    const mat = codeMaterial(d.color, { level: 1.8, base: 0x031208, gset: 3 });
     for (const sx of [-1, 1]) {
       add(grp, box(7, 46, 7), mat, em, sx * 10, 23, 0);
       add(grp, box(5, 12, 5), mat, em, sx * 10, 52, 0);
@@ -83,7 +82,7 @@ export function buildCity(scene) {
   // 0x02 ORACLE NODE — a needle with a turning dish and a signal mast
   {
     const k = 'oracle', d = DISTRICTS[k], grp = group(k), em = mkEdge(k);
-    const mat = codeMaterial(d.color, { level: 1.7, base: 0x031208 });
+    const mat = codeMaterial(d.color, { level: 1.7, base: 0x031208, gset: 1 });
     add(grp, prism(5, 30, 8), mat, em, 0, 15, 0);
     add(grp, prism(3.6, 26, 8), mat, em, 0, 43, 0);
     add(grp, prism(2.4, 12, 8), mat, em, 0, 62, 0);
@@ -105,7 +104,7 @@ export function buildCity(scene) {
   // 0x03 THE NEST — a honeycomb of hexagonal columns, home of the swarm
   {
     const k = 'hive', d = DISTRICTS[k], grp = group(k), em = mkEdge(k);
-    const mat = codeMaterial(d.color, { level: 1.7, base: 0x031208 });
+    const mat = codeMaterial(d.color, { level: 1.7, base: 0x031208});
     const r = 3.1, cells = [];
     for (let q = -2; q <= 2; q++) for (let s = -2; s <= 2; s++) {
       if (Math.abs(q + s) > 2) continue;
@@ -127,7 +126,7 @@ export function buildCity(scene) {
   // 0x04 THE VAULT — an armoured block with a round door that only opens on a verified milestone
   {
     const k = 'vault', d = DISTRICTS[k], grp = group(k), em = mkEdge(k);
-    const mat = codeMaterial(d.color, { level: 1.5, base: 0x031208 });
+    const mat = codeMaterial(d.color, { level: 1.5, base: 0x031208, gset: 2 });
     add(grp, box(16, 18, 16), mat, em, 0, 9, 0);
     add(grp, box(12, 6, 12), mat, em, 0, 21, 0);
     add(grp, box(7, 4, 7), mat, em, 0, 26, 0);
@@ -155,7 +154,7 @@ export function buildCity(scene) {
   // 0x05 THE FURNACE — a forge with two stacks; embers rise in the Burn state
   {
     const k = 'furnace', d = DISTRICTS[k], grp = group(k), em = mkEdge(k);
-    const mat = codeMaterial(d.color, { level: 1.6, base: 0x031208 });
+    const mat = codeMaterial(d.color, { level: 1.6, base: 0x031208, gset: 1 });
     grp.rotation.y = Math.atan2(-d.pos[0], -d.pos[1]);
     add(grp, box(14, 12, 12), mat, em, 0, 6, 0);
     add(grp, box(9, 10, 9), mat, em, -1, 17, 0);
@@ -188,10 +187,10 @@ export function buildCity(scene) {
   // 0x06 THE LEDGER — a monolith of falling code with pages orbiting it
   {
     const k = 'ledger', d = DISTRICTS[k], grp = group(k), em = mkEdge(k);
-    const mat = codeMaterial(d.color, { level: 2.6, cells: 3, base: 0x031208 });
+    const mat = codeMaterial(d.color, { level: 2.6, cells: 3, base: 0x031208, windows: 0.4 });
     add(grp, box(10, 64, 10, 1.2), mat, em, 0, 32, 0);
     const pages = new THREE.Group(); grp.add(pages);
-    const pageMat = codeMaterial(d.color, { level: 2.2, cells: 1.5, base: 0x041a0c });
+    const pageMat = codeMaterial(d.color, { level: 2.2, cells: 1.5, base: 0x041a0c, windows: 0 });
     pageMat.side = THREE.DoubleSide;
     for (let i = 0; i < 14; i++) {
       const p = new THREE.Mesh(codeUV(new THREE.BoxGeometry(3.2, 4.2, 0.05), 0.6), pageMat);
@@ -206,7 +205,7 @@ export function buildCity(scene) {
   // 0x07 HOLDERS' BLOCK — a walled quarter of low towers around a glowing square
   {
     const k = 'loyalty', d = DISTRICTS[k], grp = group(k), em = mkEdge(k);
-    const mat = codeMaterial(d.color, { level: 1.4, base: 0x031208 });
+    const mat = codeMaterial(d.color, { level: 1.4, base: 0x031208, gset: 3 });
     for (let i = 0; i < 8; i++) {
       const a = i / 8 * Math.PI * 2, h = 7 + (i % 3) * 3.5;
       add(grp, box(3.6, h, 3.6), mat, em, Math.cos(a) * 8, h / 2, Math.sin(a) * 8);
