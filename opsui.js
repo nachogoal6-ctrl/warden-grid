@@ -3,11 +3,11 @@ import { $, esc } from './ui.js';
 import { mountLive } from './livevault.js';
 import { O, NETS, views, onOps, runCycle, setNet, setCfg, stopAll, resetBook, closePos, startOps, equity, usd } from './ops.js';
 
-const TABS = [['matrix', 'Agents'], ['radar', 'Radar'], ['market', 'Market'], ['tape', 'Large trades'], ['intel', 'Intel'], ['auto', 'Autopilot'], ['live', 'Live vault']];
+const TABS = [['guide', 'How it works'], ['matrix', 'Agents'], ['radar', 'Radar'], ['market', 'Market'], ['tape', 'Large trades'], ['intel', 'Intel'], ['auto', 'Autopilot'], ['live', 'My agent']];
 
 export function bindOps({ onEvent } = {}) {
   const box = $('#ops'), body = $('#ops-body'), tabs = $('#ops-tabs'), net = $('#ops-net'), clock = $('#ops-clock');
-  let tab = 'matrix'; try { tab = localStorage.getItem('wg-ops-tab') || 'matrix'; } catch {}
+  let tab = 'guide'; try { tab = localStorage.getItem('wg-ops-tab') || 'guide'; } catch {}
   tabs.innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}">${l}</button>`).join('');
   net.innerHTML = Object.entries(NETS).map(([k, n]) => `<option value="${k}">${esc(n.name)}</option>`).join(''); net.value = O.net;
   const typing = () => box.contains(document.activeElement) && document.activeElement.matches('input');
@@ -15,12 +15,14 @@ export function bindOps({ onEvent } = {}) {
     if (box.hidden) return; if (!force && tab === 'auto' && typing()) return;
     if (tab === 'live') { if (!force) return; tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.tab === tab))); body.innerHTML = '<div id="lv-root"></div>'; mountLive(body.firstChild); return; }
     tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.tab === tab)));
-    const y = body.scrollTop; body.innerHTML = views[tab](); body.scrollTop = y;
+    const y = body.scrollTop, open = [...body.querySelectorAll('details')].map(d => d.open);
+    body.innerHTML = views[tab](); body.scrollTop = y;
+    body.querySelectorAll('details').forEach((d, i) => { if (open[i]) d.open = true; });
   }
   let pend = 0; const soon = () => { clearTimeout(pend); pend = setTimeout(render, 250); };
   onOps((ev, x) => {
-    if (ev === 'agent' && tab === 'matrix') soon();
-    else if (ev === 'intel' && (tab === 'intel' || tab === 'matrix')) soon();
+    if (ev === 'agent' && (tab === 'matrix' || tab === 'guide')) soon();
+    else if (ev === 'intel' && (tab === 'intel' || tab === 'matrix' || tab === 'guide')) soon();
     else if (['cycle', 'market', 'book', 'trade'].includes(ev)) soon();
     rail(); onEvent?.(ev, x);
   });
@@ -34,6 +36,7 @@ export function bindOps({ onEvent } = {}) {
   net.addEventListener('change', () => setNet(net.value));
   $('#ops-run').addEventListener('click', () => runCycle());
   body.addEventListener('click', e => {
+    const g = e.target.closest('[data-goto]'); if (g) { tab = g.dataset.goto; try { localStorage.setItem('wg-ops-tab', tab); } catch {} render(true); return; }
     const ap = e.target.closest('[data-ap]');
     if (ap) {
       const a = ap.dataset.ap;

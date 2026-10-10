@@ -77,3 +77,86 @@ export const views = {
       <p class="src">Simulated fills charge an assumed 0.3% pool fee plus price impact ≈ size ÷ (2 × liquidity). Prices: GeckoTerminal at entry, DexScreener while open (every 30 s, only while this page is open). Paper account is kept in this browser only.</p>`;
   },
 };
+
+/* ------------------------------ guide: how it all works (live) ------------------------------ */
+const WIRE = [ // agent, x, y on a 640×300 board; the Warden chip sits in the middle
+  ['scout', 70, 40], ['risk', 70, 110], ['whale', 70, 180], ['dev', 70, 250],
+  ['momentum', 570, 40], ['social', 570, 110], ['exit', 570, 250],
+];
+function wiring() {
+  const live = id => { const a = O.agents[id]; return a && (a.state === 'working' || (a.state === 'done' && Date.now() - a.at < 2 * 90000)); };
+  const cx = 320, cy = 140;
+  const traces = WIRE.map(([id, x, y], i) => {
+    const left = x < cx, xe = left ? cx - 62 : cx + 62, xm = left ? x + 90 + i * 6 : x - 90 - i * 6;
+    const d = `M${left ? x + 52 : x - 52},${y} H${xm} V${cy - 30 + (i % 4) * 20} H${xe}`;
+    const on = live(id), st = O.agents[id] || {};
+    return `<path d="${d}" class="tr ${on ? 'on' : ''}" id="tr-${id}"/>
+      ${on ? `<circle r="3.2" class="pk"><animateMotion dur="${1.6 + (i % 3) * 0.4}s" repeatCount="indefinite"><mpath href="#tr-${id}"/></animateMotion></circle>` : ''}
+      <g class="node ${st.state || 'idle'}" transform="translate(${x},${y})"><rect x="-52" y="-18" width="104" height="36"/><text y="-3">${id.toUpperCase()}</text><text y="11" class="sub">${esc((st.state || 'idle') + ' · ' + (st.stat ?? '—'))}</text></g>`;
+  }).join('');
+  const w = O.agents.warden || {};
+  return `<svg class="wire-board" viewBox="0 0 640 300" role="img" aria-label="How the agents feed the Warden">
+    <defs><pattern id="pcb" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" class="grid"/></pattern></defs>
+    <rect width="640" height="300" fill="url(#pcb)"/>
+    ${traces}
+    <path d="M${cx},${cy + 34} V285 H470" class="tr ${O.cfg.on ? 'on' : ''}" id="tr-exec"/>
+    <g class="node exec" transform="translate(520,285)"><rect x="-50" y="-13" width="100" height="26"/><text y="4">EXECUTION</text></g>
+    <g class="chip" transform="translate(${cx},${cy})"><rect x="-62" y="-34" width="124" height="68"/>
+      ${[-44, -22, 0, 22, 44].map(x => `<line x1="${x}" y1="-34" x2="${x}" y2="-42"/><line x1="${x}" y1="34" x2="${x}" y2="42"/>`).join('')}
+      <text y="-8">WARDEN</text><text y="10" class="sub">${esc(w.state || 'idle')}</text><text y="24" class="sub">${esc(w.stat ?? '—')} over ${O.cfg.minScore}</text></g>
+  </svg>`;
+}
+function funnel() {
+  const all = [...O.cands.values()], scored = all.filter(c => c.s);
+  const passed = scored.filter(c => !c.blocked?.length), floor = passed.filter(c => c.s.total >= 60), sel = passed.filter(c => c.s.total >= O.cfg.minScore);
+  const rows = [['Detected', all.length, 'pools SCOUT sees on ' + NETS[O.net].name], ['Passed RISK', passed.length, `${scored.length - passed.length} blocked by a hard rule`],
+    ['Score ≥ 60', floor.length, 'the keeper never buys under this floor'], [`Score ≥ ${O.cfg.minScore}`, sel.length, 'what an agent with the default threshold would buy'],
+    ['Executed on paper', O.book.pos.length, O.cfg.on ? 'open paper positions in this browser' : 'paper autopilot is off']];
+  const max = Math.max(1, rows[0][1]);
+  return `<div class="fn">${rows.map(([l, n, sub]) => `<div class="fn-r"><span class="fn-l">${l}</span><div class="fn-b"><i style="width:${Math.max(n ? 3 : 0, n / max * 100).toFixed(1)}%"></i></div><b>${fmt(n)}</b><em>${esc(sub)}</em></div>`).join('')}</div>`;
+}
+function decision() {
+  const top = [...O.cands.values()].filter(c => c.s && !c.blocked?.length).sort((a, b) => b.s.total - a.s.total)[0];
+  if (!top) return '<p class="note">Waiting for the first cycle of the agents.</p>';
+  const r = 52, C = 2 * Math.PI * r, v = top.s.total;
+  return `<div class="dc"><svg viewBox="0 0 130 130" class="ring"><circle cx="65" cy="65" r="${r}" class="bg"/><circle cx="65" cy="65" r="${r}" class="fg" stroke-dasharray="${(C * v / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 65 65)"/>
+      <text x="65" y="66">${v}</text><text x="65" y="84" class="sub">/ 100</text></svg>
+    <div class="dc-i"><span>Best token right now</span><b>${sigilSVG(top.token, 18)} ${esc(top.symbol)}</b><em>${v >= O.cfg.minScore ? 'over the threshold' : `${O.cfg.minScore - v} points short of ${O.cfg.minScore} · not bought`}</em>
+      <div class="dc-bars">${RULES.map((rl, i) => `<div><span>${rl[0]}</span><i style="--w:${(top.s.parts[i] / rl[1] * 100).toFixed(0)}%"></i><b>${top.s.parts[i]}/${rl[1]}</b></div>`).join('')}</div>
+      ${top.s.missing.length ? `<p class="note">${esc(top.s.missing.join(' · '))}: those parts count as 0 until read.</p>` : ''}</div></div>`;
+}
+views.guide = () => `
+  <section class="gd-hero"><div><p class="eyebrow">how it works</p><h2>The Grid hunts while you sleep.</h2>
+    <p>Eight agents read the market from different angles. The Warden turns what they find into one decision. Your agent trades it, inside the limits you sign. You can stop it at any moment.</p>
+    <div class="gd-cta"><button class="ap-go" data-goto="live">create your agent</button><button class="mini" data-goto="matrix">see the agents live</button></div></div>
+    ${wiring()}</section>
+  <p class="src">Live wiring: a trace carries moving light only while that agent is really working (or reported in the last two cycles). It is the real pipeline, not an illustration.</p>
+  <div class="gd-steps">
+    <div><i>01</i><b>Discover</b><p>SCOUT reads new and trending pools on ${esc(NETS[O.net].name)} and keeps the token behind each one.</p></div>
+    <div><i>02</i><b>Analyze</b><p>RISK and DEV open the contract, WHALE reads the large trades, MOMENTUM the price and the buyers, SOCIAL what it can hear.</p></div>
+    <div><i>03</i><b>Decide</b><p>The Warden adds the seven parts into a 0–100 score. Hard rules block first. Only scores over the threshold get bought.</p></div>
+    <div><i>04</i><b>Trade &amp; exit</b><p>Your agent buys inside your limits. EXIT sells on your stop, target, trailing stop or time limit.</p></div></div>
+  <h3 class="gd-h">From the whole board to a candidate <span>live</span></h3>${funnel()}
+  <p class="src">Each stage only counts what passed the one before. An empty end is a result, not a failure: the threshold doesn't drop because the market is quiet.</p>
+  <h3 class="gd-h">The Warden decides <span>live</span></h3>${decision()}
+  <h3 class="gd-h">Reasoning, as it happens <span>live</span></h3>
+  <ul class="intel">${O.intel.slice(0, 8).map(i => `<li class="k-${i.kind}"><span class="t">${new Date(i.at).toLocaleTimeString([], { hour12: false })}</span><span class="k">${esc(i.kind)}</span><span>${esc(i.text)}</span></li>`).join('') || '<li><span>Waiting for the first cycle.</span></li>'}</ul>
+  <h3 class="gd-h">From decision to trade</h3>
+  <ol class="gd-flow">${['Connect your wallet', 'Name your agent', 'Pick a risk profile', 'Check the limits and strategy', 'Choose the keeper and its fee', 'Sign once: your agent is live'].map((t, i) => `<li><i>${i + 1}</i>${t}</li>`).join('')}</ol>
+  <p class="note">Nothing moves outside the per-trade cap, the daily cap and the sell floor you signed. Pause, change or withdraw at any time.</p>
+  <h3 class="gd-h">How your funds are protected</h3>
+  <div class="gd-rules">
+    <div><b>Your keys stay yours.</b><p>Every step is signed in your own wallet. The site and the keeper never see a private key or a seed phrase.</p></div>
+    <div><b>The bot can only swap.</b><p>Through one fixed Uniswap router, with your agent as the only recipient. It can't withdraw or send funds anywhere else.</p></div>
+    <div><b>Hard limits on-chain.</b><p>Per trade, per day, number of positions and a sell floor, enforced by the contract, not by trust.</p></div>
+    <div><b>You can always leave.</b><p>Pause stops new trades at once. Revoke removes the bot. Withdraw works even while paused or if the site is down.</p></div></div>
+  <h3 class="gd-h">Questions</h3>
+  <div class="gd-faq">
+    <details><summary>What is an agent here?</summary><p>A vault contract that only you own, plus the strategy you set for it. A keeper bot runs the eight Warden agents and trades your vault when the score says so.</p></details>
+    <details><summary>Where does the data come from?</summary><p>GeckoTerminal, DexScreener, DefiLlama, CoinGecko and public blockchain RPCs, read live. A stage without a source says "limited" instead of inventing a number.</p></details>
+    <details><summary>Can it spend my wallet?</summary><p>No. It can only trade what you deposit into your agent, inside your limits. Your wallet is never connected to the bot.</p></details>
+    <details><summary>What does it cost?</summary><p>The keeper fee you choose (up to 1%) on each buy the keeper makes, which pays its gas. Sells and your own trades are free. Plus normal pool fees.</p></details>
+    <details><summary>Can I stop it?</summary><p>Yes, any time: pause, revoke the keeper, or withdraw everything, from the My agent tab or straight on the contract.</p></details>
+    <details><summary>Is it audited?</summary><p>The contracts have 73 tests and two independent internal reviews, all findings fixed. They are not externally audited yet: start with small amounts.</p></details>
+    <details><summary>Will it make money?</summary><p>Nobody can promise that. The agents read public data and follow rules; markets can still go against any position. Only trade what you can afford to lose.</p></details>
+  </div>`;
