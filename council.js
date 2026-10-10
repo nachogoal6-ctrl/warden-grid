@@ -33,7 +33,7 @@ export function bindCouncil({ onStart, onAgent, onDone } = {}) {
   form.addEventListener('submit', e => { e.preventDefault(); scan(inp.value.trim()); });
   box.querySelector('.cx-x').addEventListener('click', close);
   box.addEventListener('click', e => { if (e.target === box) close(); const b = e.target.closest('[data-scan]'); if (b) scan(b.dataset.scan); });
-  function open(addr) { box.hidden = false; requestAnimationFrame(() => box.classList.add('open')); document.body.classList.add('codex-open'); if (addr) scan(addr); else setTimeout(() => inp.focus(), 50); }
+  function open(addr) { box.hidden = false; void box.offsetWidth; box.classList.add("open"); document.body.classList.add('codex-open'); if (addr) scan(addr); else setTimeout(() => inp.focus(), 50); }
   function close() { box.classList.remove('open'); document.body.classList.remove('codex-open'); setTimeout(() => { box.hidden = true; }, 250); }
   return { open, close, isOpen: () => !box.hidden, scan };
 }

@@ -311,3 +311,7 @@ body.codex-open .warden-dock{display:none}
 .cx-body code{font:400 12px var(--f-mono);color:var(--code)}
 @media (max-width:760px){.cx-portrait{float:none;margin:0 0 14px;justify-items:start}}
 .lnk .nolink{color:var(--ink)}
+
+/* closed overlays must not cover the city (author display:flex overrides [hidden]) */
+.codex[hidden]{display:none!important}
+.codex:not(.open){pointer-events:none}

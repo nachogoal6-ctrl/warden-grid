@@ -156,7 +156,7 @@ export function bindCodex({ onGo }) {
   function open(id) {
     let last = null; try { last = localStorage.getItem('wg-codex'); } catch {}
     show(id || last || 'grid');
-    box.hidden = false; requestAnimationFrame(() => box.classList.add('open'));
+    box.hidden = false; void box.offsetWidth; box.classList.add("open");
     document.body.classList.add('codex-open');
   }
   function close() { box.classList.remove('open'); document.body.classList.remove('codex-open'); setTimeout(() => { box.hidden = true; }, 250); }
